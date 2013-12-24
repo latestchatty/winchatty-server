@@ -48,9 +48,10 @@ CREATE TABLE shacker (
    filter_tangent       BOOLEAN  NOT NULL
 );
 
-CREATE TABLE shacker_pinned_threads (
+CREATE TABLE shacker_marked_post (
    shacker_id           INTEGER NOT NULL REFERENCES shacker ON DELETE CASCADE,
    post_id              INTEGER NOT NULL REFERENCES post ON DELETE CASCADE,
+   mark_type            INTEGER NOT NULL,
    PRIMARY KEY (shacker_id, post_id)
 );
 
@@ -81,7 +82,7 @@ CREATE INDEX idx_post_thread_id ON post (thread_id);
 CREATE INDEX idx_post_date ON post (date);
 CREATE INDEX idx_nuked_post_reattempts ON nuked_post (reattempts);
 CREATE INDEX idx_private_client_data_shacker_id ON private_client_data (shacker_id);
-CREATE INDEX idx_shacker_pinned_threads_shacker_id ON shacker_pinned_threads (shacker_id);
+CREATE INDEX idx_shacker_marked_post_shacker_id ON shacker_marked_post (shacker_id);
 
 ---------------------------------------------------------------
 
