@@ -1,0 +1,3 @@
+electroly SSL	https://winchatty.com/service/gateway
+
+electroly	http://winchatty.com/service/gateway

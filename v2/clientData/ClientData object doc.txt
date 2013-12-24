@@ -1,0 +1,14 @@
+{
+   "categoryFilters":
+   {
+      "nws": [BIT],
+      "stupid": [BIT],
+      "political": [BIT],
+      "tangent": [BIT]
+   },
+   "pinnedThreadIds":
+   [
+      [INT],
+      ...
+   ]
+}

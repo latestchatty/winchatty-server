@@ -1,0 +1,102 @@
+<html>
+   <head>
+      <title>WinChatty API - API Documentation</title>
+      <link rel="stylesheet" type="text/css" href="Style.css"></style>
+   </head>
+   <body>
+      <span><a href="index.html"><img src="App48.png" align="left">WinChatty API</a></span>
+      <hr noshade color="#3A2E32">
+      <h1>API Documentation</h1>
+
+      <h2>BookmarkService</h2>
+      <h3>addBookmark(<i>Username</i>, <i>Note</i>, <i>Story ID</i>, <i>Post ID</i>, <i>Preview</i>, <i>Author</i>, <i>Category</i>) : Boolean</h3>
+      <p>
+         Adds a bookmark to the user's personal list.
+      </p>
+      
+      <h3>deleteBookmark(<i>Username</i>, <i>Post ID</i>) : Boolean</h3>
+      <p>
+         Deletes a bookmark from the user's personal list.
+      </p>
+      
+      <h3>getBookmarks(<i>Username</i>) : Array</h3>
+      <p>
+         Retrieves the user's list of bookmarked Shacknews posts.
+         Returns an array of objects, each containing the fields: 
+            <tt>id</tt>, <tt>story_id</tt>, <tt>note</tt>, <tt>preview</tt>, <tt>author</tt>, <tt>flag</tt>.
+      </p>
+      
+      <h2>ChattyService</h2>
+      <h3>getStories() : Array</h3>
+      <p>
+         Gets the list of recent Shacknews stories.  Returns an array of objects, each with
+         the fields <tt>story_id</tt> and <tt>title</tt>.  A special entry for "Latest Chatty"
+         (with story_id of 0) is added at the beginning of the list.
+      </p>
+      
+      <h3>getStory(<i>Story ID</i>, <i>Page</i>) : Object</h3>
+      <p>
+         Retrieves a page of threads formatted in the extended WinChatty format.  All replies
+         to all threads are included.  Shacktags are not stripped from preview text.  No
+         participants list is provided.  Replies are represented as a flat list with a <tt>depth</tt>
+         field, for faster processing.
+      </p>
+      
+      <h3>getThread(<i>Thread ID</i>) : Object</h3>
+      <p>
+         Retrieves a thread formatted in the extended WinChatty format, including both
+         thread structure and full body text.  Shacktags are not stripped from preview 
+         text.  No participants list is provided.  Replies are represented as a flat list 
+         with a <tt>depth</tt> field, for faster processing.
+      </p>
+      
+      <h3>getThreadBodies(<i>Thread ID</i>) : Object</h3>
+      <p>
+         Retrieves the full post bodies for a thread.  Returned is an object with one
+         field <tt>replies</tt>, which is an array of objects, each with the fields
+         <tt>id</tt>, <tt>author</tt>, <tt>body</tt>, <tt>category</tt>, and <tt>date</tt>.
+      </p>
+      
+      <h3>getThreadTree(<i>Thread ID</i>) : Object</h3>
+      <p>
+         Retrieves a thread, except for the post bodies.  The format is the same as
+         getThread(), except that no <tt>body</tt> field is provided for replies.
+      </p>
+      
+      <h3>locatePost(<i>Post ID</i>, <i>Story ID</i>) : Object</h3>
+      <p>
+         Locates a post within a chatty.  It finds the root thread ID and the page
+         number the thread is on.  This request can take 5-10 seconds if the thread
+         is close to the end of the chatty, but results are cached so that subsequent
+         queries for the same post are faster.
+      </p>
+      
+      <h3>search(<i>Terms</i>, <i>Author</i>, <i>Page</i>) : Object</h3>
+      <p>
+         Performs a comment search.  Returns an object with three fields: <tt>current_page</tt>,
+         <tt>last_page</tt>, and <tt>results</tt>.  <tt>results</tt> is an array of objects
+         each containing the fields <tt>id</tt>, <tt>author</tt>, <tt>story_id</tt>, 
+         <tt>preview</tt>, <tt>date</tt>, and <tt>story_name</tt>.
+      </p>
+      
+      <h2>LOLService</h2>
+      <h3>tag(<i>Username</i>, <i>Post ID</i>, <i>Tag</i>) : Boolean</h3>
+      <p>
+         Flags a post with ThomW's LOL service.  <i>Tag</i> must be <tt>inf</tt> or <tt>lol</tt>.
+      </p>
+      
+      <h2>MessageService</h2>
+      <h3>getMessages(<i>Username</i>, <i>Password</i>, <i>Page</i>, <i>Messages Per Page</i>) : Object</h3>
+      <p>
+         Gets a user's Shackmessages.  Returns an object with three fields: <tt>current_page</tt>,
+         <tt>last_page</tt>, and <tt>messages</tt>.  <tt>messages</tt> is an array of objects
+         each containing the fields <tt>body</tt>, <tt>unread</tt>, <tt>id</tt>, <tt>from</tt>, <tt>date</tt>, <tt>subject</tt>.
+      </p>
+      
+      <h2>ProfileService</h2>
+      <h3>getProfile(<i>Username</i>) : Object</h3>
+      <p>
+         Gets a user's profile information.  The returned object has two fields: <i>info</i> and <i>body</i>.
+      </p>
+   </body>
+</html>

@@ -1,0 +1,57 @@
+<html>
+   <head>
+      <title>WinChatty API - Client Documentation</title>
+      <link rel="stylesheet" type="text/css" href="Style.css"></style>
+   </head>
+   <body>
+      <span><a href="index.html"><img src="App48.png" align="left">WinChatty API</a></span>
+      <hr noshade color="#3A2E32">
+      <h1>Client Integration</h1>
+      <h2>Access Methods</h2>
+
+      <h3>JSON</h3>
+      <p>
+         The JSON API is compatible with the classic chatty protocol.  It can be used as
+         the server URL in the iPhone application.  Unlike the classic API, XML is not
+         supported.  The following REST requests are supported:
+      </p>
+      <dl>
+         <dt>/chatty/about
+         <dd>Redirects to <a href="http://shackchatty.com/about">SqueegyTBS's site</a>, for the benefit of
+             his iPhone app which makes this API call to display his about screen.  There is a 1% chance this 
+             will redirect to goatse.
+         <dt>/chatty/index.json
+         <dd>ClassicService.getStory(0, 1)
+         <dt>/chatty/<i>Story ID</i>.json
+         <dd>ClassicService.getStory(<i>Story ID</i>, 1)
+         <dt>/chatty/<i>Story ID</i>.<i>Page</i>.json
+         <dd>ClassicService.getStory(<i>Story ID</i>, <i>Page</i>)
+         <dt>/chatty/thread/<i>Thread ID</i>.json
+         <dd>ClassicService.getThread(<i>Thread ID</i>)
+         <dt>/chatty/search.json?author=<i>Author</i>&amp;parent_author=<i>Parent Author</i>&amp;terms=<i>Terms</i>
+         <dd>ClassicService.search(<i>Terms</i> + <i>Parent Author</i>, <i>Author</i>)
+         <dt>/chatty/stories.json
+         <dd>ClassicService.getStories()
+         <dt>/chatty/stories/<i>Story ID</i>.json
+         <dd>ClassicService.getArticle(<i>Story ID</i>)
+         <dt>/chatty/messages.json
+         <dd>ClassicService.getMessages(<i>HTTP Username</i>, <i>HTTP Password</i>)
+      </dl>
+      <p>
+         For the new services which have no REST equivalent, you can use the JSON 
+         gateway.  Send a GET request to:<br>
+         <tt>http://yourdomain.com/service/json.php/Class.function/arg1/arg2/...</tt>
+      </p>
+
+      <h3>AMF</h3>
+      <p>
+         The AMF service gateway address is <tt>http://yourdomain.com/service/gateway</tt>.
+         Flex/Flash can transparently call these APIs using the RemoteObject class.
+      </p>
+
+      <h3>Hessian</h3>
+      <p>
+         ...
+      </p>
+   </body>
+</html>

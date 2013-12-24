@@ -1,0 +1,1 @@
+<h1>You're using the WinChatty API!</h1>
