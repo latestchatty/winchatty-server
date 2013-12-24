@@ -95,9 +95,8 @@ class Parser
       curl_setopt($curl, CURLOPT_POST, false);
       $html = curl_exec($curl);
       
-      # Fill these in locally, but do not check into source control.
-      $username = '';
-      $password = '';
+      $username = WINCHATTY_USERNAME;
+      $password = WINCHATTY_PASSWORD;
       
       # We'll keep using the same session until Shacknews kicks us off.
       if ($fast == false && 

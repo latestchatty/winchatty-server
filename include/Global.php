@@ -14,6 +14,7 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Config.php';
+require_once 'ConfigUserPass.php';  # Defines WINCHATTY_USERNAME and WINCHATTY_PASSWORD constants.
 require_once 'Bookmarks.php';
 
 require_once 'Parser.php';
