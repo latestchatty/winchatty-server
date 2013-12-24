@@ -21,7 +21,7 @@ if (php_sapi_name() !== 'cli')
 define('MAX_NUKED_RETRIES',     1);
 define('TOTAL_TIME_SEC',        55);
 define('RETRY_INTERVAL_SEC',    25);
-define('NEW_POST_INTERVAL_SEC', 10);
+define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
 define('SQL_GET_NEXT_NEWEST_NUKED_POST_ID', 
