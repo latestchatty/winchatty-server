@@ -110,10 +110,10 @@ function startIndex() # void
          }
 
          $forceReadNewPosts = false;
-         if (file_exists('/mnt/ssd/ChattyIndex/ForceReadNewPosts'))
+         if (trim(file_get_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts')) == '1')
          {
+            file_put_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts', '');
             $forceReadNewPosts = true;
-            unlink('/mnt/ssd/ChattyIndex/ForceReadNewPosts');
          }
 
          if ((time() - $lastNewPost) >= NEW_POST_INTERVAL_SEC || $forceReadNewPosts)

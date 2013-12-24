@@ -46,6 +46,6 @@ catch (Exception $e)
    nsc_die('ERR_SERVER', $message);
 }
 
-touch('/mnt/ssd/ChattyIndex/ForceReadNewPosts');
+file_put_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts', '1');
 
 die(json_encode(array('result' => 'success')));
