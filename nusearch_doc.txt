@@ -38,6 +38,13 @@ CREATE TABLE nuked_post (
    error       TEXT        NOT NULL
 );
 
+CREATE TABLE post_edit (
+   id          SERIAL      PRIMARY KEY,
+   post_id     INTEGER     NOT NULL,
+   edit_type   INTEGER     NOT NULL,
+   date        TIMESTAMP   NOT NULL
+);
+
 CREATE TABLE shacker (
    id                   SERIAL   PRIMARY KEY,
    username             TEXT     NOT NULL UNIQUE,
