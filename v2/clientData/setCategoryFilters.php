@@ -16,20 +16,17 @@
 require_once 'Global.php';
 $pg = nsc_initJsonPost();
 $token = nsc_postArg('clientSessionToken', 'STR');
+$nws = nsc_postArg('nws', 'BIT');
+$stupid = nsc_postArg('stupid', 'BIT');
+$political = nsc_postArg('political', 'BIT');
+$tangent = nsc_postArg('tangent', 'BIT');
 
 $session = nsc_getClientSession($pg, $token);
 $username = $session['username'];
 $shackerId = nsc_getShackerId($pg, $username);
 
-$row = nsc_selectRow($pg, 
-   'SELECT filter_nws, filter_stupid, filter_political, filter_tangent FROM shacker WHERE id = $1', 
-   array($shackerId));
+nsc_execute($pg,
+   'UPDATE shacker SET filter_nws = $1, filter_stupid = $2, filter_political = $3, filter_tangent = $4 WHERE id = $5',
+   array($nws, $stupid, $political, $tangent, $shackerId));
 
-echo json_encode(array(
-   'filters' => array(
-      'nws' => (bool) $row[0],
-      'stupid' => (bool) $row[1],
-      'political' => (bool) $row[2],
-      'tangent' => (bool) $row[3]
-   )
-));
+echo json_encode(array('result' => 'success'));
