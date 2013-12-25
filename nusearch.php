@@ -135,7 +135,7 @@ $load = trim($loadArray[1]);
          introduces support for the current iteration of the Shacknews website.
          <ul>
             <li>This is a <b>complete</b> index of the Shacknews comments.</li>
-            <li>New comments are indexed every ten seconds.</li>
+            <li>New comments are indexed every five seconds.</li>
             <li>Multi-term searches work properly (logical AND).</li>
             <li>Future applications and APIs will be enabled by this database.  
                <a class="link" href="/v2/readme">Preview the next-generation WinChatty "v2" API currently in development</a>.</li>
