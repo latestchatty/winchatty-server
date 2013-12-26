@@ -160,6 +160,21 @@ class MessageParser extends Parser
       return true;
    }
 
+   public function deleteMessageInFolder($username, $password, $id, $folder)
+   {
+      if ($folder != 'inbox' && $folder != 'sent')
+         throw new Exception('Folder must be "inbox" or "sent".');
+
+      $url = 'http://www.shacknews.com/messages/delete';
+
+      $postArgs =
+         'mid='   . urlencode($id) .
+         '&type=' . $folder;
+      $this->userDownload($url, $username, $password, $postArgs);
+
+      return true;
+   }
+
    public function archiveMessage($username, $password, $id)
    {
       throw new Exception("Archive no longer exists on Shacknews.");

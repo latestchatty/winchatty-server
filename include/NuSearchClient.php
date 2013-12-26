@@ -63,7 +63,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
    else if ($isMissing)
       nsc_die('ERR_ARGUMENT', "Missing argument '$parName'.");
 
-   $max = false;
+   $max = 4294967295;
    if (strpos($parType, ',') !== false)
    {
       $parts = explode(',', $parType);
@@ -82,7 +82,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
    $ok = false;
    $argItems = explode(',', $arg);
 
-   if ($isList && $max !== false && count($argItems) > $max)
+   if ($isList && count($argItems) > $max)
       nsc_die('ERR_ARGUMENT', "Too many arguments in the list '$parName'.");
 
    foreach ($argItems as $argItem)
@@ -92,7 +92,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
          case 'INT':
             $pattern = '/^[0-9]+$/';
             $ok = preg_match($pattern, $argItem) === 1;
-            if (!$isList && $max !== false && intval($argItem) > $max)
+            if (!$isList && intval($argItem) > $max)
                nsc_die('ERR_ARGUMENT', "Argument '$parName' is out of range.  Maximum: $max.");
             break;
          case 'BIT':
@@ -110,6 +110,12 @@ function nsc_arg($args, $parName, $parType, $def = null)
          case 'MBX':
             $ok = ($argItem == 'inbox' || $argItem == 'sent');
             break;
+         case 'PET':
+            $ok = ($argItem == 'nuked' || $argItem == 'unnuked' || $argItem == 'flagged');
+            break;
+         case 'MPT':
+            $ok = ($argItem == 'unmarked' || $argItem == 'pinned' || $argItem == 'collapsed');
+            break;
          default:
             nsc_die('ERR_ARGUMENT', "Invalid parameter type '$parType'.");
             break;
@@ -120,10 +126,16 @@ function nsc_arg($args, $parName, $parType, $def = null)
       }
    }
 
-   if ($parType == 'MOD')
-      $parType = 'STR';
-   if ($parType == 'MBX')
-      $parType = 'STR';
+   # Enum data types are returned as-is (as strings)
+   switch ($parType)
+   {
+      case 'MOD':
+      case 'MBX':
+      case 'PET':
+      case 'MPT':
+         $parType = 'STR';
+         break;
+   }
 
    if ($isList && $parType == 'INT')
    {
@@ -228,6 +240,7 @@ function nsc_selectValue($pg, $sql, $args) # value
 
 function nsc_selectRowOrFalse($pg, $sql, $args) # dict or false
 {
+   $args = nsc_preProcessSqlArgs($args);
    $rs = pg_query_params($pg, $sql, $args);
    if ($rs === false)
       nsc_die('ERR_SERVER', "selectValue failed.");
@@ -249,6 +262,7 @@ function nsc_selectRow($pg, $sql, $args) # dict
 
 function nsc_selectArray($pg, $sql, $args) # array of scalar values
 {
+   $args = nsc_preProcessSqlArgs($args);
    $rs = pg_query_params($pg, $sql, $args);
    if ($rs === false)
       nsc_die('ERR_SERVER', "selectValue failed.");
@@ -266,6 +280,7 @@ function nsc_selectArray($pg, $sql, $args) # array of scalar values
 
 function nsc_query($pg, $sql, $args) # array of rows
 {
+   $args = nsc_preProcessSqlArgs($args);
    $rs = pg_query_params($pg, $sql, $args);
    if ($rs === false)
       nsc_die('ERR_SERVER', "selectAll failed.");
@@ -283,8 +298,22 @@ function nsc_query($pg, $sql, $args) # array of rows
 
 function nsc_execute($pg, $sql, $args) # void
 {
+   $args = nsc_preProcessSqlArgs($args);
    if (pg_query_params($pg, $sql, $args) === false)
       nsc_die('ERR_SERVER', "SQL execute failed.");
+}
+
+function nsc_preProcessSqlArgs($args) # array
+{
+   $newArgs = array();
+   foreach ($args as $arg)
+   {
+      if ($arg === true || $arg === false)
+         $newArgs[] = $arg ? 1 : 0;
+      else
+         $newArgs[] = $arg;
+   }
+   return $newArgs;
 }
 
 function nsc_previewFromBody($body)
@@ -689,4 +718,62 @@ function nsc_getShackerId($pg, $username)
    {
       return intval($id);
    }
+}
+
+function nsc_markTypeIntToString($markType)
+{
+   if ($markType == 0)
+      return 'unmarked';
+   else if ($markType == 1)
+      return 'pinned';
+   else if ($markType == 2)
+      return 'collapsed';
+   else
+      nsc_die('ERR_SERVER', 'Invalid marked post type value.');
+}
+
+function nsc_markTypeStringToInt($markType)
+{
+   if ($markType == 'unmarked')
+      return 0;
+   else if ($markType == 'pinned')
+      return 1;
+   else if ($markType == 'collapsed')
+      return 2;
+   else
+      nsc_die('ERR_SERVER', 'Invalid marked post type value.');
+}
+
+function nsc_postEditTypeIntToString($editType)
+{
+   if ($editType == 1)
+      return 'nuked';
+   else if ($editType == 2)
+      return 'unnuked';
+   else if ($editType == 3)
+      return 'flagged';
+   else
+      nsc_die('ERR_SERVER', 'Invalid post edit type value.');
+}
+
+function nsc_postEditTypeStringToInt($editType)
+{
+   if ($editType == 'nuked')
+      return 1;
+   else if ($editType == 'unnuked')
+      return 2;
+   else if ($editType == 'flagged')
+      return 3;
+   else
+      nsc_die('ERR_SERVER', 'Invalid post edit type value.');
+}
+
+function nsc_handleException($e)
+{
+   $message = $e->getMessage();
+
+   if (trim(strtolower($message)) == 'unable to log into user account.')
+      nsc_die('ERR_INVALID_LOGIN', 'Invalid login.');
+   else
+      nsc_die('ERR_SERVER', $message);   
 }

@@ -17,30 +17,15 @@ require_once 'Global.php';
 $pg = nsc_initJsonPost();
 $username = nsc_postArg('username', 'STR');
 $password = nsc_postArg('password', 'STR');
-$parentId = nsc_postArg('parentId', 'INT');
-$text = nsc_postArg('text', 'STR');
+$messageId = nsc_postArg('messageId', 'INT');
 
-while (strlen($text) < 10)
-   $text .= ' ';
-
-try 
+try
 {
-   $ret = ChattyParser()->post($username, $password, $parentId, 0, $text);
-
-   if (strstr($ret, 'You must be logged in to post') !== false)
-      nsc_die('ERR_INVALID_LOGIN', 'Unable to log into user account.');
-   else if (strstr($ret, 'Please wait a few minutes before trying to post again.') !== false)
-      nsc_die('ERR_POST_RATE_LIMIT', 'Please wait a few minutes before trying to post again.');
-   else if (strstr($ret, 'banned') !== false)
-      nsc_die('ERR_BANNED', 'You are banned.');
-   else if (strstr($ret, 'fixup_postbox_parent_for_remove(') === false)
-      nsc_die('ERR_SERVER', 'Unexpected response from server: ' . $ret);
+   MessageParser()->markMessageAsRead($username, $password, $messageId);
 }
 catch (Exception $e)
 {
    nsc_handleException($e);
 }
 
-file_put_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts', '1');
-
-die(json_encode(array('result' => 'success')));
+echo json_encode(array('result' => 'success'));

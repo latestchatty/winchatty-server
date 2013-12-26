@@ -23,7 +23,15 @@ $page = nsc_postArg('page', 'INT');
 if ($page < 1)
    nsc_die('ERR_ARGUMENT', 'Page number is 1-based.');
 
-$m = MessageParser()->getMessages($folder, $username, $password, $page);
+try
+{
+   $m = MessageParser()->getMessages($folder, $username, $password, $page);
+}
+catch (Exception $e)
+{
+   nsc_handleException($e);
+}
+
 $messages = array();
 
 foreach ($m['messages'] as $msg)
@@ -39,11 +47,9 @@ foreach ($m['messages'] as $msg)
    );
 }
 
-$response = array(
+echo json_encode(array(
    'page' => intval($m['current_page']),
    'totalPages' => intval($m['last_page']),
    'totalMessages' => intval($m['total']),
    'messages' => $messages
-);
-
-echo json_encode(array('posts' => $posts));
+));
