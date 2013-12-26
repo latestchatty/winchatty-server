@@ -307,6 +307,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
          executeOrThrow($pg, SQL_UPDATE_NUKED_POST, array($error, $id));
       else
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
+      logPostEdit($pg, $id, 'nuked');
       return false;
    }
    else
@@ -377,6 +378,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
       {
          # Was nuked in a previous scan, but is obviously no longer nuked.
          executeOrThrow($pg, SQL_DELETE_NUKED_POST, array($id));
+         logPostEdit($pg, $id, 'unnuked');
       }
 
       if (isPostIndexed($pg, $id))
@@ -386,7 +388,10 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          $newModFlag = $post['category'];
 
          if ($oldModFlag != $newModFlag)
+         {
             executeOrThrow($pg, SQL_UPDATE_CATEGORY, array($newModFlag, $id));
+            logPostEdit($pg, $id, 'flagged');
+         }
       }
       else
       {
@@ -697,3 +702,11 @@ function generateFrontPageFile($pg)
    file_put_contents($frontPageDataFilePath, serialize($data));
 }
 
+function logPostEdit($pg, $id, $editTypeStr)
+{
+   $editType = nsc_postEditTypeStringToInt($editTypeStr);
+
+   executeOrThrow($pg, 
+      'INSERT INTO post_edit (post_id, edit_type, date) VALUES ($1, $2, NOW())',
+      array($id, $editType));
+}
