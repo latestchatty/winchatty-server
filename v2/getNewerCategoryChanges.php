@@ -33,4 +33,4 @@ foreach ($rows as $row)
    );
 }
 
-echo json_encode(array('postEdits' => $edits));
+echo json_encode(array('categoryChanges' => $edits));
