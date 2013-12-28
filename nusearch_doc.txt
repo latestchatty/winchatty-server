@@ -41,7 +41,7 @@ CREATE TABLE nuked_post (
 CREATE TABLE post_edit (
    id          SERIAL      PRIMARY KEY,
    post_id     INTEGER     NOT NULL,
-   edit_type   INTEGER     NOT NULL,
+   category    INTEGER     NOT NULL,
    date        TIMESTAMP   NOT NULL
 );
 
@@ -101,6 +101,7 @@ Moderation flag values
 4 POLITICAL_RELIGIOUS,
 5 TANGENT,
 6 INFORMATIVE
+7 NUKED
 
 
 --------------------------------------------------------------------

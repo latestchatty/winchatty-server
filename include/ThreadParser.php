@@ -92,6 +92,12 @@ class ThreadParser extends Parser
       $url      = "http://shacknews.com/chatty?id=$threadID";
       $html     = $this->download($url);
 
+      if (strpos($html, '<p class="be_first_to_comment">') !== false)
+      {
+         # This ID is in the future.
+         throw new Exception('This post is in the future.');
+      }
+
       $this->init($html);
 
       $this->seek(1, '<div id="main">');

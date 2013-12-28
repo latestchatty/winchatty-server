@@ -25,11 +25,13 @@ define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
 define('SQL_GET_NEXT_NEWEST_NUKED_POST_ID', 
-       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '15 minutes') ORDER BY reattempts, id DESC LIMIT 1");
+       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '5 minutes') ORDER BY reattempts, id DESC LIMIT 1");
 define('SQL_GET_NEXT_OLDEST_NUKED_POST_ID', 
-       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '15 minutes') ORDER BY reattempts, id LIMIT 1");
+       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '5 minutes') ORDER BY reattempts, id LIMIT 1");
 define('SQL_GET_NEXT_OLD_POST_ID',
        'SELECT next_low_id FROM indexer LIMIT 1');
+define('SQL_RESET_NEXT_NEW_POST_ID',
+       'UPDATE indexer SET next_high_id = (SELECT MAX(id) + 1 FROM post)');
 define('SQL_GET_NEXT_NEW_POST_ID',
        'SELECT next_high_id FROM indexer LIMIT 1');
 define('SQL_DECREMENT_NEXT_OLD_POST_ID',
@@ -93,6 +95,8 @@ function startIndex() # void
       $story = ChattyParser()->getStory(0, 1);
       $knownLastID = getLastID($story);
       printf("Known last ID: %d\n", $knownLastID);
+
+      executeOrThrow($pg, SQL_RESET_NEXT_NEW_POST_ID, array());
 
       $lastNukeRetry = time();
       $lastNewPost = 0;
@@ -254,6 +258,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       return false; # We've given up on this one.
 
    $nuked = false;
+   $future = false;
    $error = false;
    $body = '???';
    $author = '???';
@@ -287,11 +292,14 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
    }
    catch (Exception $e)
    {
-      $nuked = true;
+      if (strpos($e->getMessage(), 'future') !== false)
+         $future = true;
+      else
+         $nuked = true;
       $error = $e->getMessage();
    }
 
-   if ($nuked)
+   if ($future)
    {
       if ($ignoreNuke)
       {
@@ -299,7 +307,13 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
          printf("%s  %d  ---\n", $statusFlag, $id);
          return false;
       }
-
+      else
+      {
+         die('Assertion failed: !$ignoreNuke && $future' . "\n");
+      }
+   }
+   else if ($nuked)
+   {
       checkInternet();
       printf("%s  %d  * N U K E D *\n", $statusFlag, $id);
 
@@ -307,7 +321,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
          executeOrThrow($pg, SQL_UPDATE_NUKED_POST, array($error, $id));
       else
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
-      logPostEdit($pg, $id, 'nuked');
+      logPostEdit($pg, $id, 7); # nuked
       return false;
    }
    else
@@ -378,7 +392,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
       {
          # Was nuked in a previous scan, but is obviously no longer nuked.
          executeOrThrow($pg, SQL_DELETE_NUKED_POST, array($id));
-         logPostEdit($pg, $id, 'unnuked');
+         logPostEdit($pg, $id, $post['category']);
       }
 
       if (isPostIndexed($pg, $id))
@@ -390,7 +404,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          if ($oldModFlag != $newModFlag)
          {
             executeOrThrow($pg, SQL_UPDATE_CATEGORY, array($newModFlag, $id));
-            logPostEdit($pg, $id, 'flagged');
+            logPostEdit($pg, $id, $post['category']);
          }
       }
       else
@@ -702,11 +716,9 @@ function generateFrontPageFile($pg)
    file_put_contents($frontPageDataFilePath, serialize($data));
 }
 
-function logPostEdit($pg, $id, $editTypeStr)
+function logPostEdit($pg, $id, $categoryInt)
 {
-   $editType = nsc_postEditTypeStringToInt($editTypeStr);
-
    executeOrThrow($pg, 
-      'INSERT INTO post_edit (post_id, edit_type, date) VALUES ($1, $2, NOW())',
-      array($id, $editType));
+      'INSERT INTO post_edit (post_id, category, date) VALUES ($1, $2, NOW())',
+      array($id, $categoryInt));
 }

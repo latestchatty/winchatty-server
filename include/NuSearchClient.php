@@ -409,6 +409,7 @@ function nsc_flagIntToString($num)
       case 4: $category = 'political'; break;
       case 5: $category = 'offtopic'; break;
       case 6: $category = 'informative'; break;
+      case 7: $category = 'nuked'; break;
    }
    return $category;
 }
@@ -742,30 +743,6 @@ function nsc_markTypeStringToInt($markType)
       return 2;
    else
       nsc_die('ERR_SERVER', 'Invalid marked post type value.');
-}
-
-function nsc_postEditTypeIntToString($editType)
-{
-   if ($editType == 1)
-      return 'nuked';
-   else if ($editType == 2)
-      return 'unnuked';
-   else if ($editType == 3)
-      return 'flagged';
-   else
-      nsc_die('ERR_SERVER', 'Invalid post edit type value.');
-}
-
-function nsc_postEditTypeStringToInt($editType)
-{
-   if ($editType == 'nuked')
-      return 1;
-   else if ($editType == 'unnuked')
-      return 2;
-   else if ($editType == 'flagged')
-      return 3;
-   else
-      nsc_die('ERR_SERVER', 'Invalid post edit type value.');
 }
 
 function nsc_handleException($e)
