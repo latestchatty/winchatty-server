@@ -187,6 +187,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
 function nsc_jsonHeader()
 {
    header('Content-type: application/json');
+   header('Access-Control-Allow-Origin: *');
 }
 
 function nsc_assertGet()
