@@ -320,8 +320,10 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       if ($alreadyNuked)
          executeOrThrow($pg, SQL_UPDATE_NUKED_POST, array($error, $id));
       else
+      {
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
-      logPostEdit($pg, $id, 7); # nuked
+         logPostEdit($pg, $id, 7); # nuked
+      }
       return true;
    }
    else
