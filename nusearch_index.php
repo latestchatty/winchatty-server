@@ -18,16 +18,14 @@ require_once 'include/Global.php';
 if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
 
-define('MAX_NUKED_RETRIES',     1);
-define('TOTAL_TIME_SEC',        55);
+define('MAX_NUKED_RETRIES',     4);
+define('TOTAL_TIME_SEC',        295);
 define('RETRY_INTERVAL_SEC',    25);
 define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
 define('SQL_GET_NEXT_NEWEST_NUKED_POST_ID', 
-       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '5 minutes') ORDER BY reattempts, id DESC LIMIT 1");
-define('SQL_GET_NEXT_OLDEST_NUKED_POST_ID', 
-       "SELECT id FROM nuked_post WHERE reattempts < 1 AND last_date < (NOW() - interval '5 minutes') ORDER BY reattempts, id LIMIT 1");
+       "SELECT id FROM nuked_post WHERE (reattempts = 0 AND last_date < (NOW() - interval '1 minute')) OR (reattempts < 4 AND last_date < (NOW() - interval '5 minutes')) ORDER BY reattempts, id DESC LIMIT 1");
 define('SQL_GET_NEXT_OLD_POST_ID',
        'SELECT next_low_id FROM indexer LIMIT 1');
 define('SQL_RESET_NEXT_NEW_POST_ID',
@@ -138,6 +136,10 @@ function startIndex() # void
 
             if ($inserted)
             {
+               $lastTenPosts = nsc_getPostRange($pg, intval($insertedId), 10, true);
+               file_put_contents('/mnt/ssd/ChattyIndex/LastPosts2', serialize($lastTenPosts));
+               rename('/mnt/ssd/ChattyIndex/LastPosts2', '/mnt/ssd/ChattyIndex/LastPosts');
+
                file_put_contents('/mnt/ssd/ChattyIndex/LastID2', intval($insertedId));
                rename('/mnt/ssd/ChattyIndex/LastID2', '/mnt/ssd/ChattyIndex/LastID');
             }
@@ -229,10 +231,8 @@ function retryNukedPost($pg) # bool
 
 function getNextNukedPostID($pg) # integer (post ID) or false
 {
-   global $retryFlipFlop;
-   $retryFlipFlop = !$retryFlipFlop;
    $id = false;
-   $cmd = $retryFlipFlop ? SQL_GET_NEXT_NEWEST_NUKED_POST_ID : SQL_GET_NEXT_OLDEST_NUKED_POST_ID;
+   $cmd = SQL_GET_NEXT_NEWEST_NUKED_POST_ID;
 
    $id = selectValueOrFalse($pg, $cmd, array());
    if ($id === false)
@@ -322,7 +322,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       else
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
       logPostEdit($pg, $id, 7); # nuked
-      return false;
+      return true;
    }
    else
    {

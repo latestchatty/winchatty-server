@@ -17,8 +17,9 @@ require_once 'Global.php';
 nsc_jsonHeader();
 nsc_assertGet();
 $filePath = '/mnt/ssd/ChattyIndex/LastID';
-#search_data_directory . 'LastID';
+$postsFilePath = '/mnt/ssd/ChattyIndex/LastPosts';
 $lastId = nsc_getArg('lastId', 'INT?', intval(file_get_contents($filePath)));
+$returnPostData = nsc_getArg('returnPostData', 'BIT?', false);
 
 while (intval(file_get_contents($filePath)) <= $lastId)
 {
@@ -26,4 +27,17 @@ while (intval(file_get_contents($filePath)) <= $lastId)
    # I know, right?  Gets the job done though.  Programming is hard.
 }
 
-echo json_encode(array('id' => intval(file_get_contents($filePath))));
+if ($returnPostData)
+{
+   $lastTenPosts = unserialize(file_get_contents($postsFilePath));
+   $returnPosts = array();
+   foreach ($lastTenPosts as $post)
+      if ($post['id'] > $lastId)
+         $returnPosts[] = $post;
+   echo json_encode(array('id' => intval(file_get_contents($filePath)), 'posts' => $returnPosts));        
+}
+else
+{
+   echo json_encode(array('id' => intval(file_get_contents($filePath))));   
+}
+
