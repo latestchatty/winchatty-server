@@ -23,6 +23,8 @@ $username = $session['username'];
 $client = $session['client_code'];
 $shackerId = nsc_getShackerId($pg, $username);
 
+nsc_execute($pg, 'BEGIN', array());
+
 nsc_execute($pg,
    'DELETE FROM private_client_data WHERE shacker_id = $1 AND client_code = $2',
    array($shackerId, $client));
@@ -30,5 +32,7 @@ nsc_execute($pg,
 nsc_execute($pg,
    'INSERT INTO private_client_data (shacker_id, client_code, data) VALUES ($1, $2, $3)',
    array($shackerId, $client, $data));
+
+nsc_execute($pg, 'COMMIT', array());
 
 echo json_encode(array('result' => 'success'));
