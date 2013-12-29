@@ -19,25 +19,17 @@ nsc_assertGet();
 $filePath = '/mnt/ssd/ChattyIndex/LastID';
 $postsFilePath = '/mnt/ssd/ChattyIndex/LastPosts';
 $lastId = nsc_getArg('lastId', 'INT?', intval(file_get_contents($filePath)));
-$returnPostData = nsc_getArg('returnPostData', 'BIT?', false);
 
 while (intval(file_get_contents($filePath)) <= $lastId)
 {
-   sleep(2);
+   sleep(1);
    # I know, right?  Gets the job done though.  Programming is hard.
 }
 
-if ($returnPostData)
-{
-   $lastTenPosts = unserialize(file_get_contents($postsFilePath));
-   $returnPosts = array();
-   foreach ($lastTenPosts as $post)
-      if ($post['id'] > $lastId)
-         $returnPosts[] = $post;
-   echo json_encode(array('id' => intval(file_get_contents($filePath)), 'posts' => $returnPosts));        
-}
-else
-{
-   echo json_encode(array('id' => intval(file_get_contents($filePath))));   
-}
+$lastTenPosts = unserialize(file_get_contents($postsFilePath));
+$returnPosts = array();
+foreach ($lastTenPosts as $post)
+   if ($post['id'] > $lastId)
+      $returnPosts[] = $post;
+echo json_encode(array('id' => intval(file_get_contents($filePath)), 'posts' => $returnPosts));        
 
