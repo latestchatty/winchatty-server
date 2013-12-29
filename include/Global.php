@@ -28,7 +28,6 @@ require_once 'MessageParser.php';
 require_once 'ProfileParser.php';
 
 require_once 'ClassicAdapter.php';
-require_once 'SearchEngine.php';
 
 require_once 'NuSearchClient.php';
 require_once 'PorterStemmer.php';
