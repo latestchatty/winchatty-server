@@ -264,40 +264,58 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
    $author = '???';
    $date = '???';
    $threadID = 0;
+   $retry = false;
+   $numRetries = 0;
 
-   try
+   do 
    {
-      $thread = getThread($id); # throws exception on failure
-      $postWasFound = indexThread($pg, $id, $thread);
+      $nuked = false;
+      $future = false;
+      $error = false;
+      $retry = false;
 
-      if (!$postWasFound)
+      try
       {
-         $nuked = true;
-         $error = 'Post was not found in the thread.';
-      }
-      else
-      {
-         foreach ($thread['replies'] as $reply)
+         $thread = getThread($id); # throws exception on failure
+         $postWasFound = indexThread($pg, $id, $thread);
+
+         if (!$postWasFound)
          {
-            if ($reply['id'] == $id)
+            $nuked = true;
+            $error = 'Post was not found in the thread.';
+         }
+         else
+         {
+            foreach ($thread['replies'] as $reply)
             {
-               $body = $reply['body'];
-               $author = $reply['author'];
-               $date = $reply['date'];
-               $threadID = $reply['thread_id'];
-               break;
+               if ($reply['id'] == $id)
+               {
+                  $body = $reply['body'];
+                  $author = $reply['author'];
+                  $date = $reply['date'];
+                  $threadID = $reply['thread_id'];
+                  break;
+               }
             }
          }
       }
-   }
-   catch (Exception $e)
-   {
-      if (strpos($e->getMessage(), 'future') !== false)
-         $future = true;
-      else
-         $nuked = true;
-      $error = $e->getMessage();
-   }
+      catch (Exception $e)
+      {
+         if (strpos($e->getMessage(), 'future') !== false)
+            $future = true;
+         else
+            $nuked = true;
+         $error = $e->getMessage();
+      }
+
+      if ($nuked && $numRetries < 5 && $ignoreNuke)
+      {
+         echo "Retrying stalled post $id...\n";
+         sleep(3);
+         $numRetries++;
+         $retry = true;
+      }
+   } while ($retry);
 
    if ($future)
    {
