@@ -54,7 +54,7 @@ class MessageException {
 	 * @param AMFException @exception The exception object to throw
 	 * @see AMFBody
 	 */ 
-	function throwException (&$body, $exception) {
+	public static function throwException (&$body, $exception) {
 		$body->responseURI = $body->responseIndex . "/onStatus";
 		$results = &$body->getResults();
 
@@ -82,7 +82,7 @@ class MessageException {
 		}
 	} 
 	
-	function getFriendlyError ($err) {
+	public static function getFriendlyError ($err) {
 		$errortype = array (1 => "Error",
 			2 => "Warning",
 			4 => "Parsing Error",
