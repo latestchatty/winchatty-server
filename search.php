@@ -337,14 +337,6 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
 }
 else
 {
-   $minutes_ago = '&#8734;';
-   $story_count = count(glob(data_directory . 'Search/*.story'));
-   
-   if (file_exists(data_directory . 'ReindexFinish.zzz'))
-   {
-      $last_reindex = filemtime(data_directory . 'ReindexFinish.zzz');
-      $minutes_ago = ceil((time() - $last_reindex) / 60);
-   }
    ?>
    <div class="frontpage">
       <div style="float: right; text-align: center;">
@@ -352,35 +344,7 @@ else
          <img src="img/App128.png" alt="" border=0><br>
          Download WinChatty 3.0k</a>
       </div>
-      <!--Comments were indexed <b style="font-size: 14px;"><?=$minutes_ago?></b> minute<?=$minutes_ago == 1 ? '' : 's'?> ago. 
-      There are <b style="font-size: 14px;"><?=$story_count?></b> stories indexed.<br><br>-->
 
-<?
-   $finishTime = filemtime(data_directory . 'ReindexFinish.zzz');
-   $startTime = filemtime(data_directory . 'ReindexBegin.zzz');
-   $currentTime = time();
-   if ($finishTime < $startTime)
-   {
-      $duration = $currentTime - $startTime;
-      $time = ($duration > 60) ? intval($duration / 60) . " minutes" : "$duration seconds";
-      
-      echo '<img src="ajax-loader.gif" align="top"> <b style="font-size: 14px; color: #C60F52;">Reindex in progress... <!--' . $time . '--></b><br><br>';
-   }
-?>
-      <!--<b style="font-size: 14px;">WinChatty Search</b> supports:
-      <ul>
-         <li>Searching for Unicode symbols:  <a href="http://winchatty.com/search.php?terms=%E2%99%A5&amp;author=&amp;parentAuthor=&amp;category=">&hearts;</a>
-         <li>Search terms with punctuation:  <a href="http://winchatty.com/?terms=C%2B%2B&amp;author=&amp;parentAuthor=&amp;category=">C++</a>
-         <li>Searching for URLs:  <a href="http://winchatty.com/search.php?terms=http://www.youtube.com&amp;author=&amp;parentAuthor=&amp;category=">http://www.youtube.com</a>
-         <li>Shacktags, moderation flags, and parent author listed in the search results.
-         <li>Custom indexer that is not affected if the Shacknews search breaks.
-      </ul>
-      Only stories appearing on the first <b style="font-size: 14px;"><?=search_retention?></b> pages of the Shacknews main site are indexed.  For older posts, you will need to 
-      use the regular Shacknews comment search.<br><br>
-      Install the <a href="http://lmnopc.com/greasemonkey/shack2007/shack-altcommentsearch.user.js ">Greasemonkey script</a> to replace the Shacknews
-      search box with WinChatty Search.  Thanks to <a href="http://shacknews.com/profile/ThomW">ThomW</a> for writing the script.<br><br>
-      WinChatty Search was written and is hosted by <a href="http://shacknews.com/profile/electroly">electroly</a>.<br><br>
-      -->
       Friends,<br><br>
       
       WinChatty Search is now a front-end for the official Shacknews search engine.  You can download
