@@ -87,6 +87,8 @@ class ChattyParser extends Parser
    {
       $this->init($html);
 
+      ThreadParser()->checkContentId($html);
+
       $o = array(
          'threads'      => array(),
          'story_id'     => false,

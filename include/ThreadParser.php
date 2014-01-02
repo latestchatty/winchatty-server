@@ -86,6 +86,26 @@ class ThreadParser extends Parser
       return $o;
    }
    
+   public function checkContentId($html)
+   {
+      $contentTypeIdPrefix = '<input type="hidden" name="content_type_id" id="content_type_id" value="';
+      $contentTypeIdPos = strpos($html, $contentTypeIdPrefix);
+      $contentTypeId = false;
+      if ($contentTypeIdPos !== false)
+      {
+         $i = $contentTypeIdPos + strlen($contentTypeIdPrefix);
+         $contentTypeIdStr = '';
+         while ($html[$i] != '"')
+         {
+            $contentTypeIdStr .= $html[$i];
+            $i++;
+         }
+         $contentTypeId = intval($contentTypeIdStr);
+      }
+      if ($contentTypeId != 2 && $contentTypeId != 17)
+         throw new Exception('This post is not in the main chatty.');
+   }
+
    public function getThreadTree($threadID)
    {
       $threadID = intval($threadID);
@@ -97,6 +117,8 @@ class ThreadParser extends Parser
          # This ID is in the future.
          throw new Exception('This post is in the future.');
       }
+
+      self::checkContentId($html);
 
       $this->init($html);
 
