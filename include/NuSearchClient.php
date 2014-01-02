@@ -430,7 +430,6 @@ function nsc_newPostFromRow($row)
 
 function nsc_getPosts($pg, $idList)
 {
-   $id = intval($id);
    $idListStr = implode(',', $idList);
    $rows = nsc_query($pg, 
       "SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id IN ($idListStr)", 
@@ -777,8 +776,13 @@ function nsc_getUserRegistrationDate($pg, $username) # unix timestamp
       if ($json === false)
          return false;
 
-      $data = json_decode($json);
-      $signupDate = strtotime($data->join_date);
+      $data = json_decode($json, true);
+      if ($data === false || !is_array($data) || !isset($data['join_date']))
+         return false;
+
+      $signupDate = strtotime($data['join_date']);
+      if ($signupDate < strtotime('1990-01-01'))
+         return false;
 
       $shackerId = nsc_getShackerId($pg, $username);
       nsc_execute($pg,
@@ -791,4 +795,33 @@ function nsc_getUserRegistrationDate($pg, $username) # unix timestamp
    {
       return strtotime($signupDate);
    }
+}
+
+function nsc_logEvent($pg, $type, $data)
+{
+   nsc_execute($pg, 'INSERT INTO event (date, type, data) VALUES (NOW(), $1, $2)', array($type, json_encode($data)));
+
+   $rows = nsc_query($pg, 'SELECT id, date, type, data FROM event ORDER BY id DESC LIMIT 101', array());
+   $newestRow = $rows[0];
+   $newestId = intval($newestRow[0]);
+   $oldestId = intval($rows[count($rows) - 1][0]);
+
+   $events = array();
+   foreach ($rows as $row)
+   {
+      $events[] = array(
+         'eventId' => intval($row[0]),
+         'eventDate' => nsc_date(strtotime($row[1])),
+         'eventType' => strval($row[2]),
+         'eventData' => json_decode(strval($row[3])),
+      );
+   }
+
+   nsc_execute($pg, 'DELETE FROM event WHERE id < $1', array($oldestId));
+
+   file_put_contents('/mnt/ssd/ChattyIndex/LastEvents2', serialize($events));
+   rename('/mnt/ssd/ChattyIndex/LastEvents2', '/mnt/ssd/ChattyIndex/LastEvents');
+
+   file_put_contents('/mnt/ssd/ChattyIndex/LastEventID2', intval($newestId));
+   rename('/mnt/ssd/ChattyIndex/LastEventID2', '/mnt/ssd/ChattyIndex/LastEventID');
 }
