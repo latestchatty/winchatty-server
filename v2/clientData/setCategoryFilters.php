@@ -20,13 +20,14 @@ $nws = nsc_postArg('nws', 'BIT');
 $stupid = nsc_postArg('stupid', 'BIT');
 $political = nsc_postArg('political', 'BIT');
 $tangent = nsc_postArg('tangent', 'BIT');
+$informative = nsc_postArg('informative', 'BIT');
 
 $session = nsc_getClientSession($pg, $token);
 $username = $session['username'];
 $shackerId = nsc_getShackerId($pg, $username);
 
 nsc_execute($pg,
-   'UPDATE shacker SET filter_nws = $1, filter_stupid = $2, filter_political = $3, filter_tangent = $4 WHERE id = $5',
-   array($nws, $stupid, $political, $tangent, $shackerId));
+   'UPDATE shacker SET filter_nws = $1, filter_stupid = $2, filter_political = $3, filter_tangent = $4, filter_informative = $5 WHERE id = $6',
+   array($nws, $stupid, $political, $tangent, $informative, $shackerId));
 
 echo json_encode(array('result' => 'success'));

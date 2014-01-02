@@ -22,14 +22,15 @@ $username = $session['username'];
 $shackerId = nsc_getShackerId($pg, $username);
 
 $row = nsc_selectRow($pg, 
-   'SELECT filter_nws, filter_stupid, filter_political, filter_tangent FROM shacker WHERE id = $1', 
+   'SELECT filter_nws, filter_stupid, filter_political, filter_tangent, filter_informative FROM shacker WHERE id = $1', 
    array($shackerId));
 
 echo json_encode(array(
    'filters' => array(
-      'nws' => (bool) $row[0],
-      'stupid' => (bool) $row[1],
-      'political' => (bool) $row[2],
-      'tangent' => (bool) $row[3]
+      'nws' => $row[0] == 't',
+      'stupid' => $row[1] == 't',
+      'political' => $row[2] == 't',
+      'tangent' => $row[3] == 't',
+      'informative' => $row[4] == 't'
    )
 ));
