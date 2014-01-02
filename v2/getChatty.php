@@ -23,10 +23,13 @@ if (is_null($expiration))
    $expiration = 18;
 
 $rows = nsc_query($pg, 
-   "SELECT id, date, bump_date FROM thread WHERE date > (NOW() - interval '$expiration hours') ORDER BY bump_date DESC LIMIT \$1",
+   "SELECT id FROM thread WHERE date > (NOW() - interval '$expiration hours') ORDER BY bump_date DESC LIMIT \$1",
    array($count));
 $threads = array();
 foreach ($rows as $row)
-   $threads[] = array('threadId' => intval($row[0]), 'date' => nsc_date(strtotime($row[1])));
+{
+   $threadId = intval($row[0]);
+   $threads[] = nsc_getThread($pg, $threadId);
+}
 
 echo json_encode(array('threads' => $threads));
