@@ -714,7 +714,7 @@ function nsc_getShackerId($pg, $username)
       nsc_execute($pg, 
          'INSERT INTO shacker (username, filter_nws, filter_stupid, filter_political, filter_tangent) VALUES ($1, true, true, true, true)', 
          array($username));
-      return nsc_getSharedId($pg, $username);
+      return nsc_getShackerId($pg, $username);
    }
    else
    {
@@ -754,4 +754,41 @@ function nsc_handleException($e)
       nsc_die('ERR_INVALID_LOGIN', 'Invalid login.');
    else
       nsc_die('ERR_SERVER', $message);   
+}
+
+function nsc_getUserRegistrationDate($pg, $username) # unix timestamp
+{
+   $signupDate = nsc_selectValueOrFalse($pg, 'SELECT signup_date FROM shacker WHERE username = $1', array(strtolower($username)));
+   if ($signupDate === false || is_null($signupDate))
+   {
+      $url = 'http://www.shacknews.com/api/users/' . rawurlencode($username) . '.json';
+      $curl = curl_init();
+      curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($curl, CURLOPT_HEADER, false);
+      curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+      curl_setopt($curl, CURLOPT_USERAGENT, 'WinChatty API');
+      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 2);
+      curl_setopt($curl, CURLOPT_URL, $url);
+      curl_setopt($curl, CURLOPT_USERPWD, WINCHATTY_USERNAME . ':' . WINCHATTY_PASSWORD);
+      $json = curl_exec($curl);
+      curl_close($curl);
+
+      if ($json === false)
+         return false;
+
+      $data = json_decode($json);
+      $signupDate = strtotime($data->join_date);
+
+      $shackerId = nsc_getShackerId($pg, $username);
+      nsc_execute($pg,
+         'UPDATE shacker SET signup_date = $1 WHERE id = $2',
+         array(date('c', $signupDate), $shackerId));
+
+      return $signupDate;
+   }
+   else
+   {
+      return strtotime($signupDate);
+   }
 }
