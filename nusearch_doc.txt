@@ -45,7 +45,8 @@ CREATE TABLE shacker (
    filter_nws           BOOLEAN  NOT NULL,
    filter_stupid        BOOLEAN  NOT NULL,
    filter_political     BOOLEAN  NOT NULL,
-   filter_tangent       BOOLEAN  NOT NULL
+   filter_tangent       BOOLEAN  NOT NULL,
+   filter_informative   BOOLEAN  NOT NULL
 );
 
 CREATE TABLE shacker_marked_post (

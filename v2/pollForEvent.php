@@ -23,12 +23,6 @@ $lastId = nsc_getArg('lastEventId', 'INT');
 if ($lastId > intval(file_get_contents($filePath)))
    nsc_die('NSC_ARGUMENT', 'lastEventId is higher than any existing event.');
 
-while (intval(file_get_contents($filePath)) <= $lastId)
-{
-   sleep(1);
-   # I know, right?  Gets the job done though.  Programming is hard.
-}
-
 $lastEvents = unserialize(file_get_contents($eventsFilePath));
 $returnEvents = array();
 foreach ($lastEvents as $event)

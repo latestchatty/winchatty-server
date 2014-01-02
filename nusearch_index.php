@@ -134,16 +134,6 @@ function startIndex() # void
                $more = $exists;
             }
 
-            if ($inserted)
-            {
-               $lastTenPosts = nsc_getPostRange($pg, intval($insertedId), 10, true);
-               file_put_contents('/mnt/ssd/ChattyIndex/LastPosts2', serialize($lastTenPosts));
-               rename('/mnt/ssd/ChattyIndex/LastPosts2', '/mnt/ssd/ChattyIndex/LastPosts');
-
-               file_put_contents('/mnt/ssd/ChattyIndex/LastID2', intval($insertedId));
-               rename('/mnt/ssd/ChattyIndex/LastID2', '/mnt/ssd/ChattyIndex/LastID');
-            }
-
             $lastNewPost = time();
          }
 
@@ -308,10 +298,10 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
          $error = $e->getMessage();
       }
 
-      if ($nuked && $numRetries < 5 && $ignoreNuke)
+      if ($nuked && $numRetries < 2 && $ignoreNuke)
       {
          echo "Retrying stalled post $id...\n";
-         sleep(3);
+         sleep(5);
          $numRetries++;
          $retry = true;
       }
