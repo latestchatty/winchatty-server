@@ -14,22 +14,8 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
-nsc_jsonHeader();
-nsc_assertGet();
-$filePath = '/mnt/ssd/ChattyIndex/LastID';
-$postsFilePath = '/mnt/ssd/ChattyIndex/LastPosts';
-$lastId = nsc_getArg('lastId', 'INT?', intval(file_get_contents($filePath)));
+$pg = nsc_initJsonGet();
 
-while (intval(file_get_contents($filePath)) <= $lastId)
-{
-   sleep(1);
-   # I know, right?  Gets the job done though.  Programming is hard.
-}
+$eventId = intval(nsc_selectValue($pg, 'SELECT id FROM event ORDER BY id DESC LIMIT 1', array()));
 
-$lastTenPosts = unserialize(file_get_contents($postsFilePath));
-$returnPosts = array();
-foreach ($lastTenPosts as $post)
-   if ($post['id'] > $lastId)
-      $returnPosts[] = $post;
-echo json_encode(array('id' => intval(file_get_contents($filePath)), 'posts' => $returnPosts));        
-
+echo json_encode(array('eventId' => $eventId));

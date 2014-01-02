@@ -14,21 +14,25 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
-$pg = nsc_initJsonGet();
-$usernameList = nsc_getArg('username', 'STR+,50');
+nsc_jsonHeader();
+nsc_assertGet();
+$filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+$eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
+$lastId = nsc_getArg('lastEventId', 'INT');
 
-$users = array();
-foreach ($usernameList as $username)
+while (intval(file_get_contents($filePath)) <= $lastId)
 {
-   $time = nsc_getUserRegistrationDate($pg, $username);
-
-   if ($time !== false)
-   {
-      $users[] = array(
-         'username' => $username,
-         'date' => nsc_date($time)
-      );
-   }
+   sleep(1);
+   # I know, right?  Gets the job done though.  Programming is hard.
 }
 
-echo json_encode(array('users' => $users));
+$lastEvents = unserialize(file_get_contents($eventsFilePath));
+$returnEvents = array();
+foreach ($lastEvents as $event)
+   if ($event['eventId'] > $lastId)
+      $returnEvents[] = $event;
+
+if (count($returnEvents) > 100)
+   nsc_die('ERR_TOO_MANY_EVENTS', 'More than 100 events have occurred since the specified last event ID.');
+
+echo json_encode(array('lastEventId' => intval(file_get_contents($filePath)), 'events' => $returnEvents));        

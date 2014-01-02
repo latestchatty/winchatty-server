@@ -340,7 +340,8 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       else
       {
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
-         logPostEdit($pg, $id, 7); # nuked
+         #logPostEdit($pg, $id, 7); # nuked
+         #^^^ Reason for comment: Don't log a category change if we've never seen this post alive before.
       }
       return true;
    }
@@ -440,7 +441,9 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
             $id, $threadId, $post['parent_id'], $post['author'], $post['category'], $post['date'], $post['body'], $authorC, $bodyC));
 
          # Update our text index
-         updateIndexForPost($pg,  $id, $bodyC);
+         updateIndexForPost($pg, $id, $bodyC);
+
+         logNewPost($pg, intval($id));
       }
    }
 
@@ -468,6 +471,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          # $postId exists in the database but not in real ife.  It has been nuked.
          # We will delete it from our database.
          executeOrThrow($pg, SQL_DELETE_POST, array($postId));
+         logPostEdit($pg, $id, 7); # nuked
       }
    }
 
@@ -736,9 +740,29 @@ function generateFrontPageFile($pg)
    file_put_contents($frontPageDataFilePath, serialize($data));
 }
 
+function logNewPost($pg, $id)
+{
+   $posts = nsc_getPosts($pg, array($id));
+
+   # [E_NEWP]
+   $newp = array(
+      'postId' => intval($id),
+      'post' => $posts[0]
+   );
+   nsc_logEvent($pg, 'newPost', $newp);
+}
+
 function logPostEdit($pg, $id, $categoryInt)
 {
-   executeOrThrow($pg, 
-      'INSERT INTO post_edit (post_id, category, date) VALUES ($1, $2, NOW())',
-      array($id, $categoryInt));
+   #executeOrThrow($pg, 
+      #'INSERT INTO post_edit (post_id, category, date) VALUES ($1, $2, NOW())',
+      #array($id, $categoryInt));
+
+   # [E_CATC]
+   $catc = array(
+      'postId' => intval($id),
+      'category' => nsc_flagIntToString($categoryInt)
+   );
+   nsc_logEvent($pg, 'categoryChange', $catc);
 }
+

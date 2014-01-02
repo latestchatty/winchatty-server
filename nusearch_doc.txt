@@ -38,17 +38,10 @@ CREATE TABLE nuked_post (
    error       TEXT        NOT NULL
 );
 
-CREATE TABLE post_edit (
-   id          SERIAL      PRIMARY KEY,
-   post_id     INTEGER     NOT NULL,
-   category    INTEGER     NOT NULL,
-   date        TIMESTAMP   NOT NULL
-);
-
 CREATE TABLE shacker (
    id                   SERIAL   PRIMARY KEY,
    username             TEXT     NOT NULL UNIQUE,
-   signup_date          TIMESTAMP,
+   signup_date          TIMESTAMP WITH TIME ZONE NULL,
    filter_nws           BOOLEAN  NOT NULL,
    filter_stupid        BOOLEAN  NOT NULL,
    filter_political     BOOLEAN  NOT NULL,
@@ -74,7 +67,14 @@ CREATE TABLE client_session (
    username TEXT NOT NULL,
    client_code TEXT NOT NULL,
    client_version TEXT NOT NULL,
-   expire_date TIMESTAMP NOT NULL
+   expire_date TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE event (
+   id SERIAL PRIMARY KEY,
+   date TIMESTAMP WITH TIME ZONE NOT NULL,
+   type TEXT NOT NULL,
+   data TEXT NOT NULL
 );
 
 INSERT INTO indexer (next_low_id, next_high_id) VALUES (31156792, 31156793);

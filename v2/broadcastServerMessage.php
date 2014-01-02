@@ -14,13 +14,31 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
-$pg = nsc_initJsonGet();
+$pg = nsc_initJsonPost();
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
+$message = nsc_postArg('message', 'STR');
 
-$row = nsc_selectRow($pg, 'SELECT id, post_id, category, date FROM post_edit ORDER BY id DESC LIMIT 1', array());
+if ($username != 'electroly')
+   nsc_die('ERR_INVALID_LOGIN', 'Enter an administrator username and password.');
 
-echo json_encode(array(
-   'postEditId' => intval($row[0]),
-   'postId' => intval($row[1]),
-   'category' => nsc_flagIntToString(intval($row[2])),
-   'date' => nsc_date(strtotime($row[3]))
-));
+try
+{
+   MessageParser()->getUserID($username, $password);
+}
+catch (Exception $e)
+{
+   $message = $e->getMessage();
+
+   if (trim(strtolower($message)) == 'unable to log into user account.')
+      nsc_die('ERR_INVALID_LOGIN', 'Enter an administrator username and password.');
+
+   nsc_die('ERR_SERVER', $message);
+}
+
+# [E_SMSG]
+$smsg = array('message' => $message);
+
+nsc_logEvent($pg, 'serverMessage', $smsg);
+
+echo json_encode(array('result' => 'success'));

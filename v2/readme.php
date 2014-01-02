@@ -27,16 +27,16 @@ $html = str_replace('·', '&bull;', $html);
 $html = str_replace('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', $html);
 
 $startStr = '<p class=MsoToc1>';
-$endStr = "none'>1</span></a></p>";
+$endStr = "<div style='border-left: 8pt #B3186D solid; margin-top:";
 $startPos = strpos($html, $startStr);
-$endPos = strrpos($html, $endStr);
+$endPos = strpos($html, $endStr, $startPos);
 
 if ($startPos === false)
    die($html);
 if ($endPos === false)
    die($html);
 
-$html = substr_replace($html, '</div>&nbsp;</div>', $endPos + strlen($endStr), 0);
+$html = substr_replace($html, '</div>&nbsp;</div>', $endPos, 0);
 $html = substr_replace($html, '<div id="tree"><div style="padding: 10px;">', $startPos, 0);
 $html = str_replace('<p class=MsoTocHeading>Contents</p>', '', $html);
 
