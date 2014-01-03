@@ -23,7 +23,7 @@ if (is_null($expiration))
    $expiration = 18;
 
 $rows = nsc_query($pg, 
-   "SELECT id FROM thread WHERE date > (NOW() - interval '$expiration hours') ORDER BY bump_date DESC LIMIT \$1",
+   "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '$expiration hours') ORDER BY thread.bump_date DESC LIMIT \$1",
    array($count));
 $threads = array();
 foreach ($rows as $row)

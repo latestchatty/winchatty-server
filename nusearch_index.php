@@ -19,9 +19,9 @@ if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
 
 define('MAX_NUKED_RETRIES',     4);
-define('TOTAL_TIME_SEC',        295);
-define('RETRY_INTERVAL_SEC',    30);
-define('REVISIT_INTERVAL_SEC',  30);
+define('TOTAL_TIME_SEC',        300);
+define('RETRY_INTERVAL_SEC',    35);
+define('REVISIT_INTERVAL_SEC',  200);  # Effectively once every 5 minutes.  Runs towards the end of the cycle.
 define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
@@ -233,14 +233,35 @@ function retryNukedPost($pg) # bool
 
 function revisitThread($pg)
 {
-   $rows = nsc_query($pg, 
-      "SELECT id FROM thread WHERE date > (NOW() - interval '18 hours') ORDER BY bump_date DESC LIMIT 60",
-      array());
-   $index = rand(0, count($rows) - 1);
-   $row = $rows[$index];
+   $chattyParser = ChattyParser();
 
-   echo "Revisiting " . $row[0] . "\n";
-   tryIndexPost($pg, intval($row[0]), false);
+   $rows = nsc_query($pg, 
+      "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '18 hours') ORDER BY thread.bump_date DESC",
+      array());
+
+   $expectedThreadIds = array();
+   foreach ($rows as $row)
+      $expectedThreadIds[] = intval($row[0]);
+
+   $lastPage = 1;
+   $actualThreadIds = array();
+   echo 'Checking for nuked threads';
+   for ($pageNum = 1; $pageNum <= $lastPage; $pageNum++)
+   {
+      $page = $chattyParser->getStory(0, $pageNum);
+      $lastPage = intval($page['last_page']);
+      foreach ($page['threads'] as $thread)
+         $actualThreadIds[intval($thread['id'])] = true;
+
+      echo '.';
+   }
+   echo "\n";
+   foreach ($expectedThreadIds as $expectedThreadId)
+   {
+      $found = isset($actualThreadIds[$expectedThreadId]);
+      if (!$found)
+         tryIndexPost($pg, $expectedThreadId, false);
+   }
 }
 
 function getNextNukedPostID($pg) # integer (post ID) or false
@@ -263,8 +284,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
    # $id may be new to the database, or an existing post, or an existing nuked post.
    # Returns true if the post exists, false if the post is nuked.
 
-   if (isPostIndexed($pg, $id))
-      return true; # No need to do anything.  It's good.
+   $isPostIndexed = isPostIndexed($pg, $id);
 
    $alreadyNuked = isPostNuked($pg, $id);
    $reattempts = $alreadyNuked ? getNukedPostRetries($pg, $id) : 0;
@@ -363,8 +383,11 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
          executeOrThrow($pg, SQL_UPDATE_NUKED_POST, array($error, $id));
       else
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
+
+      if ($isPostIndexed)
+         executeOrThrow($pg, 'DELETE FROM post WHERE id = $1', array($id));
       
-      if ($statusFlag == 'V')
+      if ($statusFlag == 'V' && !$alreadyNuked)
       {
          # We're revisiting this thread.  If it's nuked, then we need to push
          # that fact out.
