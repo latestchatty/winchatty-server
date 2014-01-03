@@ -318,11 +318,11 @@ function nsc_preProcessSqlArgs($args) # array
 function nsc_previewFromBody($body)
 {
    $preview = nsc_removeSpoilers($body, false);
-   $preview = nsc_strReplaceAll("<br />", " ", $preview);
-   $preview = nsc_strReplaceAll("<br/>", " ", $preview);
-   $preview = nsc_strReplaceAll("<br>", " ", $preview);
-   $preview = nsc_strReplaceAll("\n", " ", $preview);
-   $preview = nsc_strReplaceAll("\r", " ", $preview);
+   $preview = str_replace("<br />", " ", $preview);
+   $preview = str_replace("<br/>", " ", $preview);
+   $preview = str_replace("<br>", " ", $preview);
+   $preview = str_replace("\n", " ", $preview);
+   $preview = str_replace("\r", " ", $preview);
    $preview = nsc_strReplaceAll("  ", " ", $preview);
    $preview = strip_tags($preview, '<span><b><i><u>');
    return $preview;
@@ -1028,6 +1028,9 @@ function nsc_v1_getStory($pg, $page)
       "last_page": 5
    }
    */
+
+   if ($page < 1)
+      $page = 1;
 
    $threadIds = nsc_getActiveThreadIds($pg);
 
