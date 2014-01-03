@@ -16,7 +16,6 @@
 # Convenience
 function nsc_initJsonGet()
 {
-   global $_GET;
    nsc_jsonHeader();
    nsc_assertGet();
    return nsc_connectToDatabase();
@@ -25,7 +24,6 @@ function nsc_initJsonGet()
 # Convenience
 function nsc_initJsonPost()
 {
-   global $_POST;
    nsc_jsonHeader();
    nsc_assertPost();
    return nsc_connectToDatabase();
@@ -437,7 +435,12 @@ function nsc_getPosts($pg, $idList)
    return array_map('nsc_newPostFromRow', $rows);
 }
 
-function nsc_getThread($pg, $id, $possiblyMissing = false)
+function nsc_getThreadId($pg, $postId)
+{
+   return intval(nsc_selectValue($pg, 'SELECT thread_id FROM post WHERE id = $1', array(intval($postId))));
+}
+
+function nsc_getThread($pg, $id, $possiblyMissing = false, $sort = false)
 {
    $id = intval($id);
    $threadId = nsc_selectValueOrFalse($pg, 'SELECT thread_id FROM post WHERE id = $1', array($id));
@@ -456,8 +459,9 @@ function nsc_getThread($pg, $id, $possiblyMissing = false)
       else
          nsc_die('ERR_SERVER', "The thread $threadId does not exist.");
    }
+   $orderBy = $sort ? ' ORDER BY id ' : '';
    $rows = nsc_query($pg, 
-      'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE thread_id = $1', 
+      'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE thread_id = $1 ' . $orderBy, 
       array($threadId));
    return array(
       'threadId' => $threadId,
@@ -824,4 +828,229 @@ function nsc_logEvent($pg, $type, $data)
 
    file_put_contents('/mnt/ssd/ChattyIndex/LastEventID2', intval($newestId));
    rename('/mnt/ssd/ChattyIndex/LastEventID2', '/mnt/ssd/ChattyIndex/LastEventID');
+}
+
+function nsc_getActiveThreadIds($pg, $expiration = 18, $count = 1000)
+{
+   $rows = nsc_query($pg, 
+      "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '$expiration hours') ORDER BY thread.bump_date DESC LIMIT \$1",
+      array($count));
+   $ids = array();
+   foreach ($rows as $row)
+      $ids[] = intval($row[0]);
+   return $ids;
+}
+
+function nsc_v1_date($time)
+{
+   $date = new DateTime(date('c', $time));
+   $date->setTimezone(new DateTimeZone('America/Los_Angeles'));
+   return $date->format('M d, Y g:ia T');
+}
+
+function nsc_v1_getThreadBodies($pg, $threadId)
+{
+   /*
+   {
+      "replies":
+      [
+         {
+            "category": "stupid",
+            "id": 31303256,
+            "author": "hashd",
+            "body": "blah blah",
+            "date": "Jan 02, 2014 10:13pm PST"
+         },
+         ...
+      ]
+   }
+   */
+   $replies = array();
+
+   $thread = nsc_getThread($pg, $threadId, false, true);
+   $posts = $thread['posts'];
+
+   $replies = array();
+   foreach ($posts as $post)
+   {
+      $replies[] = array(
+         'category' => nsc_v1_fromV2Category($post['category']),
+         'id' => strval($post['id']),
+         'author' => $post['author'],
+         'body' => $post['body'],
+         'date' => nsc_v1_date(strtotime($post['date']))
+      );
+   }
+
+   return array('replies' => $replies);
+}
+
+function nsc_v1_getThreadTree($pg, $threadId)
+{
+   /*
+   {
+      "body": "...",
+      "category": "...",
+      "id": "1234",
+      "author": "...",
+      "date": "Jan 02, 2014 9:44pm PST",
+      "preview": "...",
+      "reply_count": 26,
+      "last_reply_id": 1234,
+      "replies":
+      [
+         {
+            "category": "...",
+            "id": "1234",
+            "author": "...",
+            "preview": "...",
+            "depth": 0,
+            "date": "Jan 02, 2014 9:44pm PST",
+            "body": "..."
+         },
+         ...
+      ],
+      "story_id": 0,
+      "story_name": "Latest Chatty"
+   }
+   */
+   $thread = nsc_getThread($pg, $threadId, false, true);
+   $posts = $thread['posts'];
+   $threadId = $posts[0]['id'];
+
+   $childrenOf = array();
+   foreach ($posts as $post)
+   {
+      $parentId = $post['parentId'];
+      if (isset($childrenOf[$parentId]))
+         $childrenOf[$parentId][] = $post;
+      else
+         $childrenOf[$parentId] = array($post);
+   }
+
+   $v1posts = nsc_v1_getThreadTree_build($childrenOf, $posts[0], 0);
+   $v1root = $v1posts[0];
+
+   $lastReplyId = 0;
+   foreach ($v1posts as $v1post)
+      if ($v1post['id'] > $lastReplyId)
+         $lastReplyId = $v1post['id'];
+
+   return array(
+      'body' => $v1root['body'],
+      'category' => nsc_v1_fromV2Category($v1root['category']),
+      'id' => strval($v1root['id']),
+      'author' => $v1root['author'],
+      'date' => $v1root['date'],
+      'preview' => $v1root['preview'],
+      'reply_count' => count($v1posts),
+      'last_reply_id' => $lastReplyId,
+      'replies' => $v1posts,
+      'story_id' => 0,
+      'story_name' => 'Latest Chatty'
+   );
+}
+
+function nsc_v1_convertFromV2Post($v2post, $depth)
+{
+   return array(
+      'category' => nsc_v1_fromV2Category($v2post['category']),
+      'id' => strval($v2post['id']),
+      'author' => $v2post['author'],
+      'preview' => nsc_previewFromBody($v2post['body']),
+      'depth' => $depth,
+      'date' => nsc_v1_date(strtotime($v2post['date'])),
+      'body' => $v2post['body']
+   );
+}
+
+function nsc_v1_getThreadTree_build(&$childrenOf, $post, $depth)
+{
+   $posts = array(nsc_v1_convertFromV2Post($post, $depth));
+
+   if (isset($childrenOf[$post['id']]))
+   {
+      foreach ($childrenOf[$post['id']] as $child)
+      {
+         $childPosts = nsc_v1_getThreadTree_build($childrenOf, $child, $depth + 1);
+         $posts = array_merge($posts, $childPosts);
+      }
+   }
+
+   return $posts;
+}
+
+function nsc_v1_fromV2Category($v2category)
+{
+   if ($v2category == 'tangent')
+      return 'offtopic';
+   else
+      return $v2category;
+}
+
+function nsc_v1_getStory($pg, $page)
+{
+   /*
+   {
+      "threads":
+      [
+         {
+            "body": ""
+            "category": ""
+            "id", "1234"
+            "author": ""
+            "date": "Jan 02, 2014, 7:53pm PST"
+            "preview": ""
+            "reply_count": 1234
+            "last_reply_id": 1234
+            "replies": 
+            [
+               {
+                  "category": "",
+                  "id": "",
+                  "author": "",
+                  "preview": "",
+                  "depth": 0,
+                  "date": "Jan 02, 2014, 7:53pm PST",
+                  "body": ""
+               },
+               ...
+            ]
+         },
+         ...
+      ],
+      "story_id": 0
+      "story_name": ""
+      "story_text": ""
+      "story_author": ""
+      "story_date": ""
+      "current_page": "1"
+      "last_page": 5
+   }
+   */
+
+   $threadIds = nsc_getActiveThreadIds($pg);
+
+   $skip = ($page - 1) * 40;
+   $take = 40;
+   $totalPages = ceil(count($threadIds) / 40);
+
+   $filteredThreadIds = array();
+   for ($i = $skip; $i < $skip + $take && $i < count($threadIds); $i++)
+      $filteredThreadIds[] = $threadIds[$i];
+
+   $threads = array();
+   foreach ($filteredThreadIds as $threadId)
+      $threads[] = nsc_v1_getThreadTree($pg, $threadId);
+
+   return array(
+      'threads' => $threads,
+      'story_id' => 0,
+      'story_name' => 'Latest Chatty',
+      'story_text' => '',
+      'story_author' => 'Shacknews',
+      'story_date' => nsc_v1_date(time()),
+      'current_page' => strval($page),
+      'last_page' => $totalPages
+   );
 }

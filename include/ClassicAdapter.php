@@ -17,7 +17,10 @@ class ClassicAdapter
 {
    public static function getThread($threadID)
    {
-      $thread = ThreadParser()->getThread($threadID, false);
+      #$thread = ThreadParser()->getThread($threadID, false);
+      $pg = nsc_connectToDatabase();
+      $thread = nsc_v1_getThreadTree($pg, $threadID);
+
       $participants = self::getParticipants($thread['replies']);
       
       # Make the tree hierarchical.
@@ -101,7 +104,9 @@ class ClassicAdapter
    
    public static function getStory($story, $page)
    {
-      $chatty = ChattyParser()->getStory($story, $page);
+      #$chatty = ChattyParser()->getStory($story, $page);
+      $pg = nsc_connectToDatabase();
+      $chatty = nsc_v1_getStory($pg, $page);
       
       $json = array(
          'comments'   => array(),

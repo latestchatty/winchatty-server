@@ -22,14 +22,9 @@ if (is_null($count))
 if (is_null($expiration))
    $expiration = 18;
 
-$rows = nsc_query($pg, 
-   "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '$expiration hours') ORDER BY thread.bump_date DESC LIMIT \$1",
-   array($count));
+$threadIds = nsc_getActiveThreadIds($pg, $expiration, $count);
 $threads = array();
-foreach ($rows as $row)
-{
-   $threadId = intval($row[0]);
+foreach ($threadIds as $threadId)
    $threads[] = nsc_getThread($pg, $threadId);
-}
 
 echo json_encode(array('threads' => $threads));

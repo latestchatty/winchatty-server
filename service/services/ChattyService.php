@@ -5,27 +5,41 @@ class ChattyService
 {
    public function getStories()
    {
-      return StoriesFeedParser()->getStories();
+      #return StoriesFeedParser()->getStories();
+      return array(
+         array(
+            'title' => 'Latest Chatty',
+            'story_id' => 0
+         )
+      );
    }
 
    public function getStory($storyID, $page)
    {
-      return ChattyParser()->getStory($storyID, $page);
+      #return ChattyParser()->getStory($storyID, $page);
+      $pg = nsc_connectToDatabase();
+      return nsc_v1_getStory($pg, $page);
    }
    
    public function getThreadBodies($threadID)
    {
-      return ThreadParser()->getThreadBodies($threadID);
+      #return ThreadParser()->getThreadBodies($threadID);
+      $pg = nsc_connectToDatabase();
+      return nsc_v1_getThreadBodies($pg, $threadID);
    }
    
    public function getThreadTree($threadID)
    {
-      return ThreadParser()->getThreadTree($threadID);
+      #return ThreadParser()->getThreadTree($threadID);
+      $pg = nsc_connectToDatabase();
+      return nsc_v1_getThreadTree($pg, $threadID);
    }
    
    public function getThread($threadID)
    {
-      return ThreadParser()->getThread($threadID);
+      #return ThreadParser()->getThread($threadID);
+      $pg = nsc_connectToDatabase();
+      return nsc_v1_getThreadTree($pg, $threadID);
    }
    
    public function post($username, $password, $parentID, $storyID, $body)
