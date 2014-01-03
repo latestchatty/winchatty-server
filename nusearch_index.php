@@ -20,7 +20,8 @@ if (php_sapi_name() !== 'cli')
 
 define('MAX_NUKED_RETRIES',     4);
 define('TOTAL_TIME_SEC',        295);
-define('RETRY_INTERVAL_SEC',    25);
+define('RETRY_INTERVAL_SEC',    30);
+define('REVISIT_INTERVAL_SEC',  30);
 define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
@@ -96,16 +97,27 @@ function startIndex() # void
 
       executeOrThrow($pg, SQL_RESET_NEXT_NEW_POST_ID, array());
 
-      $lastNukeRetry = time();
+      $lastNukeRetry = time() - 10;
+      $lastRevisit = time() - 5;
       $lastNewPost = 0;
 
       while ((time() - $cycleStartTime) < TOTAL_TIME_SEC)
       {
+         if ((time() - $lastRevisit) >= REVISIT_INTERVAL_SEC)
+         {
+            $statusFlag = 'V';
+            beginTransaction($pg);
+            revisitThread($pg);
+            commitTransaction($pg);
+
+            $lastRevisit = time();
+         }
+
          if ((time() - $lastNukeRetry) >= RETRY_INTERVAL_SEC)
          {
             $statusFlag = 'R';
             beginTransaction($pg);
-            $more = retryNukedPost($pg);
+            retryNukedPost($pg);
             commitTransaction($pg);
 
             $lastNukeRetry = time();
@@ -219,6 +231,18 @@ function retryNukedPost($pg) # bool
    return true; # May be more nuked posts
 }
 
+function revisitThread($pg)
+{
+   $rows = nsc_query($pg, 
+      "SELECT id FROM thread WHERE date > (NOW() - interval '18 hours') ORDER BY bump_date DESC LIMIT 60",
+      array());
+   $index = rand(0, count($rows) - 1);
+   $row = $rows[$index];
+
+   echo "Revisiting " . $row[0] . "\n";
+   tryIndexPost($pg, intval($row[0]), false);
+}
+
 function getNextNukedPostID($pg) # integer (post ID) or false
 {
    $id = false;
@@ -256,6 +280,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
    $threadID = 0;
    $retry = false;
    $numRetries = 0;
+   $weekendConfirmed = false;
 
    do 
    {
@@ -263,6 +288,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       $future = false;
       $error = false;
       $retry = false;
+      $weekendConfirmed = false;
 
       try
       {
@@ -293,6 +319,8 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
       {
          if (strpos($e->getMessage(), 'future') !== false)
             $future = true;
+         else if (strpos($e->getMessage(), 'main chatty') !== false)
+            $weekendConfirmed = true;
          else
             $nuked = true;
          $error = $e->getMessage();
@@ -300,12 +328,15 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
 
       if ($nuked && $numRetries < 2 && $ignoreNuke)
       {
-         echo "Retrying stalled post $id...\n";
+         echo "Retrying stalled post $id\n";
          sleep(5);
          $numRetries++;
          $retry = true;
       }
    } while ($retry);
+
+   if ($weekendConfirmed) # We don't retry WC, but otherwise it's just nuked.
+      $nuked = true;
 
    if ($future)
    {
@@ -323,16 +354,23 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
    else if ($nuked)
    {
       checkInternet();
-      printf("%s  %d  * N U K E D *\n", $statusFlag, $id);
+      if ($weekendConfirmed)
+         printf("%s  %d  Non-chatty post.\n", $statusFlag, $id);
+      else
+         printf("%s  %d  * N U K E D *\n", $statusFlag, $id);
 
       if ($alreadyNuked)
          executeOrThrow($pg, SQL_UPDATE_NUKED_POST, array($error, $id));
       else
-      {
          executeOrThrow($pg, SQL_INSERT_NUKED_POST, array(0, $error, $id));
-         #logPostEdit($pg, $id, 7); # nuked
-         #^^^ Reason for comment: Don't log a category change if we've never seen this post alive before.
+      
+      if ($statusFlag == 'V')
+      {
+         # We're revisiting this thread.  If it's nuked, then we need to push
+         # that fact out.
+         logPostEdit($pg, $id, 7); # nuked
       }
+
       return true;
    }
    else
