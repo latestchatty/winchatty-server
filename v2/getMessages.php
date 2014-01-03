@@ -25,7 +25,7 @@ if ($page < 1)
 
 try
 {
-   $m = MessageParser()->getMessages($folder, $username, $password, $page);
+   $m = MessageParser()->getMessages($folder, $username, $password, $page, 0);
 }
 catch (Exception $e)
 {
