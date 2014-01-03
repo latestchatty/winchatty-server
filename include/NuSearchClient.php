@@ -408,7 +408,7 @@ function nsc_flagIntToString($num)
       case 2: $category = 'nws'; break;
       case 3: $category = 'stupid'; break;
       case 4: $category = 'political'; break;
-      case 5: $category = 'offtopic'; break;
+      case 5: $category = 'tangent'; break;
       case 6: $category = 'informative'; break;
       case 7: $category = 'nuked'; break;
    }
@@ -711,7 +711,7 @@ function nsc_getShackerId($pg, $username)
    if ($id === false)
    {
       nsc_execute($pg, 
-         'INSERT INTO shacker (username, filter_nws, filter_stupid, filter_political, filter_tangent) VALUES ($1, true, true, true, true)', 
+         'INSERT INTO shacker (username, filter_nws, filter_stupid, filter_political, filter_tangent, filter_informative) VALUES ($1, true, true, true, true, true)', 
          array($username));
       return nsc_getShackerId($pg, $username);
    }
