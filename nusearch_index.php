@@ -64,7 +64,7 @@ define('SQL_SELECT_THREAD_POST_IDS',
 define('SQL_DELETE_POST',
        'DELETE FROM post WHERE id = $1');
 define('SQL_BUMP_THREAD',
-       'UPDATE thread SET bump_date = $2 WHERE id = $1');
+       'UPDATE thread SET bump_date = NOW() WHERE id = $1');
 
 startIndex();
 
@@ -103,6 +103,9 @@ function startIndex() # void
 
       while ((time() - $cycleStartTime) < TOTAL_TIME_SEC)
       {
+         $statusFlag = 'Q';
+         processReindexRequests($pg);
+
          if ((time() - $lastRevisit) >= REVISIT_INTERVAL_SEC)
          {
             $statusFlag = 'V';
@@ -174,6 +177,24 @@ function startIndex() # void
       disconnectFromDatabase($pg);
 
    printf("\n$totalPostsIndexed posts indexed.\n");
+}
+
+function processReindexRequests($pg)
+{
+   $ids = selectArrayOrThrow($pg, 'SELECT post_id FROM reindex_request', array());
+
+   if (empty($ids))
+      return;
+
+   beginTransaction($pg);
+   foreach ($ids as $id)
+   {
+      echo "Requested reindex: $id\n";
+      tryIndexPost($pg, intval($id), false);
+      executeOrThrow($pg, 'DELETE FROM reindex_request WHERE post_id = $1', array(intval($id)));
+   }
+   
+   commitTransaction($pg);
 }
 
 function getLastID($story) # integer
@@ -503,7 +524,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
    foreach ($thread['replies'] as $post)
       if (strtotime($post['date']) > $newestTime)
          $newestTime = strtotime($post['date']);
-   executeOrThrow($pg, SQL_BUMP_THREAD, array($threadId, date('c', $newestTime)));
+   executeOrThrow($pg, SQL_BUMP_THREAD, array($threadId));
 
    # See if there are any posts in the database which have since been nuked
    foreach (selectArrayOrThrow($pg, SQL_SELECT_THREAD_POST_IDS, array($threadId)) as $postId)

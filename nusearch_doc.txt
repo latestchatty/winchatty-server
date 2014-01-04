@@ -78,11 +78,16 @@ CREATE TABLE event (
    data TEXT NOT NULL
 );
 
+CREATE TABLE reindex_request (
+   id SERIAL PRIMARY KEY,
+   post_id INTEGER NOT NULL
+);
+
 INSERT INTO indexer (next_low_id, next_high_id) VALUES (31156792, 31156793);
 INSERT INTO thread (id, bump_date) VALUES (0, '2013-11-29');
 INSERT INTO post (id, thread_id, parent_id, author, category, date, body, author_c, body_c) VALUES (0, 0, NULL, '', 1, '2013-11-29', '', '', '');
 
-CREATE INDEX idx_thread_bump_date ON thread (bump_date);
+CREATE INDEX idx_thread_date ON thread (date);
 CREATE INDEX idx_post_index_body_c_ts ON post_index USING gin(body_c_ts);
 CREATE INDEX idx_post_author_c ON post (author_c);
 CREATE INDEX idx_post_category ON post (category);
