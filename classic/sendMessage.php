@@ -8,22 +8,26 @@ if (!isset($_SERVER['PHP_AUTH_USER']))
 {
    header('WWW-Authenticate: Basic realm="WinChatty Server"');
    header('HTTP/1.0 401 Unauthorized');
-   die('Unable to log in.');
-}
-else
+   echo 'Cancelled.';
+   exit;
+} 
+else 
 {
    $username = $_SERVER['PHP_AUTH_USER'];
    $password = $_SERVER['PHP_AUTH_PW'];
 }
 
-$adapter = new ClassicAdapter();
+$to = $_POST['to'];
+$subject = $_POST['subject'];
+$body = $_POST['body'];
+
 try
 {
-   $result = $adapter->getMessages($username, $password);
+   MessageParser()->sendMessage($username, $password, $to, $subject, $body);
 }
 catch (Exception $e)
 {
-   die('error_get_failed');
+   die('error_send_failed');
 }
 
-echo json_encode($result);
+echo "OK";

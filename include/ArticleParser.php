@@ -1,24 +1,10 @@
 <?
-# WinChatty Server
-# Copyright (C) 2013 Brian Luft
-# 
-# This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public 
-# License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later 
-# version.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
-# details.
-# 
-# You should have received a copy of the GNU General Public License along with this program; if not, write to the Free 
-# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 class ArticleParser extends Parser
 {
    public function getArticle($storyID)
    {
       $storyID = intval($storyID);
-      $this->init($this->download("http://www.shacknews.com/onearticle.x/$storyID"));
+      $this->init($this->download("http://www.shacknews.com/article/$storyID"));
       return $this->parseArticle($this);
    }
 
@@ -30,39 +16,22 @@ class ArticleParser extends Parser
          'body'          => false,
          'date'          => false,
          'comment_count' => false,
-         'id'            => false);
+         'id'            => false,
+         'thread_id'     => false);
    
-      $p->seek(1, '<div class="story">');
-      
-      $story['id'] = $p->clip(
-         array('<a href="http://www.shacknews.com/onearticle.x/', 'onearticle.x/', '/'),
-         '">');
+      $p->seek(1, '<div id="main">');
 
-      $story['name'] = $p->clip(
-         '>',
-         '</a>');
+      $story['name'] = $p->clip(array('<h1>', '>'), '<');
+      $story['date'] = nsc_v1_date(strtotime($p->clip(array('<span class="vitals">', 'by ', ', ', ' '), '</span>')));
+      $story['body'] = '<div>' . $p->clip(array('<div id="article_body">', '>'), '<script type="text/javascript" src="/js/jquery.ba-postmessage.min.js"></script>');
+      $story['preview'] = nsc_previewFromBody($story['body']);
+      $story['comment_count'] = 0;
 
-      $story['date'] = $p->clip(
-         array('<span class="date">', '>'),
-         '</span>');
-         
-      $story['body'] = trim($p->clip(
-         array('<div class="body">', '>'),
-         '<div class="comments">'));
-      
-      # Trim the extra </div> from the end of the body.
-      $story['body'] = substr($story['body'], 0, -6);
-      
-      $story['preview'] = substr(strip_tags($story['body']), 0, 500);
-      
-      $story['comment_count'] = $p->clip(
-         array('<span class="commentcount">', '>'),
-         ' ');
-      
-      if ($story['comment_count'] == 'No')
-         $story['comment_count'] = '0';
-      else
-         $story['comment_count'] = intval($story['comment_count']);
+      $p->seek(1, '<div class="threads">');
+      $story['thread_id'] = intval($p->clip(array('<div id="root_', '_'), '"'));
+
+      $p->seek(1, '<input type="hidden" name="content_type_id" id="content_type_id" value="2" />');
+      $story['id'] = intval($p->clip(array('<input type="hidden" value="', 'value', '"'), '"'));
       
       return $story;
    }

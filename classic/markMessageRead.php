@@ -1,6 +1,9 @@
 <?
 require_once '../include/Global.php';
 
+if (!isset($_REQUEST['id']))
+   die('No id');
+
 $username = false;
 $password = false;
 
@@ -16,14 +19,14 @@ else
    $password = $_SERVER['PHP_AUTH_PW'];
 }
 
-$adapter = new ClassicAdapter();
 try
 {
-   $result = $adapter->getMessages($username, $password);
+   MessageParser()->markMessageAsRead($username, $password, intval($_REQUEST['id']));
 }
 catch (Exception $e)
 {
-   die('error_get_failed');
+   die('error_mark_failed');
 }
 
-echo json_encode($result);
+
+die('ok');
