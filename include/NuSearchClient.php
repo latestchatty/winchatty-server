@@ -841,6 +841,11 @@ function nsc_getActiveThreadIds($pg, $expiration = 18, $count = 1000)
    return $ids;
 }
 
+function nsc_getNewestEventId($pg)
+{
+   return intval(nsc_selectValue($pg, 'SELECT id FROM event ORDER BY id DESC LIMIT 1', array()));
+}
+
 function nsc_v1_date($time)
 {
    $date = new DateTime(date('c', $time));

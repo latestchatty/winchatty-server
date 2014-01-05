@@ -48,13 +48,16 @@ class ChattyService
          $parentID = '';
    
       $ret = ChattyParser()->post($username, $password, $parentID, $storyID, $body);
-      
+
       if (strstr($ret, 'You must be logged in to post') !== false)
          throw new Exception('Invalid username or password.');
       else if (strstr($ret, 'Please wait a few minutes before trying to post again.') !== false)
          throw new Exception("* P R L ' D *");
       else if (strstr($ret, 'fixup_postbox_parent_for_remove(') !== false)
+      {
+         sleep(5);
          return true;
+      }
       else
          throw new Exception($ret);
    }
@@ -68,5 +71,30 @@ class ChattyService
    public function locatePost($postID, $storyID)
    {
       return ChattyParser()->locatePost($postID, $storyID);
+   }
+
+   public function getNewestEventId()
+   {
+      $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+      $eventId = intval(file_get_contents($filePath));
+      return $eventId;
+   }
+
+   public function verifyCredentials($username, $password)
+   {
+      try
+      {
+         MessageParser()->getUserID($username, $password);
+         return "valid";
+      }
+      catch (Exception $e)
+      {
+         $message = $e->getMessage();
+
+         if (trim(strtolower($message)) == 'unable to log into user account.')
+            return "invalid";
+
+         throw $e;
+      }
    }
 }
