@@ -12,13 +12,13 @@ if (!isset($_SERVER['PHP_AUTH_USER']))
 }
 else
 {
-   $username = urlencode($_SERVER['PHP_AUTH_USER']);
-   $password = urlencode($_SERVER['PHP_AUTH_PW']);
+   $username = $_SERVER['PHP_AUTH_USER'];
+   $password = $_SERVER['PHP_AUTH_PW'];
 }
 
 $parentID = $_REQUEST['parent_id'];
 $storyID = 0;
-$body = urlencode($_REQUEST['body']);
+$body = $_REQUEST['body'];
 
 try
 {
