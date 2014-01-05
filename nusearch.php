@@ -144,7 +144,7 @@ $load = trim($loadArray[1]);
          @electroly<br>
          <br>
          P.S. The Shacknews-based search engine is <a class="link" href="/search">still available if needed</a>.<br>
-         P.P.S. Install the <a class="link" href="http://s3.amazonaws.com/winchatty/WinChatty-3.0k.air">WinChatty desktop client</a> 
+         P.P.S. Install the <a class="link" href="http://s3.amazonaws.com/winchatty/WinChatty-3.1.air">WinChatty desktop client</a> 
          for a rich chatty experience.  <a class="link" href="http://get.adobe.com/air">Adobe AIR</a> required.<br>
          <br>
          <table id="stats">
