@@ -14,8 +14,10 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
-$pg = nsc_initJsonGet();
+nsc_jsonHeader();
+nsc_assertGet();
+$filePath = '/mnt/ssd/ChattyIndex/LastEventID';
 
-$eventId = intval(nsc_selectValue($pg, 'SELECT id FROM event ORDER BY id DESC LIMIT 1', array()));
+$eventId = intval(file_get_contents($filePath));
 
 echo json_encode(array('eventId' => $eventId));
