@@ -129,6 +129,7 @@ class MessageParser extends Parser
 
    public function sendMessage($username, $password, $recipient, $subject, $body)
    {
+      $body = str_replace("\r", "", $body);
       $url = 'http://www.shacknews.com/messages/send';
       $postArgs =
          'uid='      . urlencode($this->getUserID($username, $password)) .
