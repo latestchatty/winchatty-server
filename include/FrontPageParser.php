@@ -26,16 +26,46 @@ class FrontPageParser extends Parser
       $articleParser = ArticleParser();
       $stories       = array();
    
-      $this->init($html);
-      $this->seek(1, '<div class="news">');
-      
-      while ($this->peek(1, '<div class="story">') !== false)
+      $p = $this;
+      $p->init($html);
+
+      $p->seek(1, '<div id="main">');
+      $p->seek(1, '<div id="feature-break">');
+
+      $retList = array();
+      $i = 0;
+      while ($p->peek(1, ' class="story">') !== false)
       {
-         $story     = $articleParser->parseArticle($this);
-         $stories[] = $story;
+         $p->seek(1, ' class="story">');
+         $relativeUrl = $p->clip(array('<h', '><a href="', '"'), '"');
+         $choppedRelativeUrl = str_replace('/article/', '', $relativeUrl);
+         $id = substr($choppedRelativeUrl, 0, strpos($choppedRelativeUrl, '/'));
+         $title = $p->clip(array('>'), '<');
+         if (strpos($title, 'Weekend Confirmed') !== false)
+            continue;
+         $time = strtotime($p->clip(array('<span class="byline">', 'by ', ',', ' '), '</span>'));
+         $summary = trim($p->clip(array('<div class="summary">', '>'), '</div>'));
+         $commentDiv = $p->clip(array('<div class="small-bubble', '>'), '</div>');
+         $postCount = 0;
+         if (strpos($commentDiv, 'Comment on this story') === false)
+         {
+            $p->seek(1, '<span class="user-credit">');
+            $postCount = $p->clip(array('<a href="', '>', 'See', 'all', ' '), ' comments</a>');
+         }
+         $i++;
+         $retList[] = array(
+            'body' => strval($summary),
+            'comment_count' => intval($postCount),
+            'date' => nsc_v1_date($time),
+            'id' => intval($id),
+            'name' => strval($title),
+            'preview' => trim(nsc_previewFromBody($summary)),
+            'url' => 'http://www.shacknews.com' . $relativeUrl,
+            'thread_id' => ''
+         );
       }
-      
-      return $stories;
+
+      return $retList;
    }
 }
 
