@@ -20,7 +20,10 @@ $limit  = nsc_getArg('limit', 'INT?', 40);
 $username = nsc_getArg('username', 'STR?', '');
 $expiration = 18;
 
-$threadIds = nsc_getActiveThreadIds($pg, $expiration, $limit, $offset);
+$allThreadIds = nsc_getActiveThreadIds($pg, $expiration);
+$threadIds = array();
+for ($i = $offset; $i < $offset + $limit && $i < count($allThreadIds); $i++)
+   $threadIds[] = $allThreadIds[$i];
 
 $rootPosts = array();
 foreach ($threadIds as $threadId)
@@ -43,4 +46,4 @@ foreach ($threadIds as $threadId)
    );
 }
 
-echo json_encode(array('rootPosts' => $rootPosts));
+echo json_encode(array('totalThreadCount' => count($allThreadIds), 'rootPosts' => $rootPosts));
