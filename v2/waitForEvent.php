@@ -36,8 +36,31 @@ foreach ($lastEvents as $event)
       $returnEvents[] = $event;
 
 if (count($returnEvents) > 100)
-   nsc_die('ERR_TOO_MANY_EVENTS', 'More than 100 events have occurred since the specified last event ID.');
+{
+   # Read from the database instead.
+   $pg = nsc_connectToDatabase();
 
-$returnEvents = array_reverse($returnEvents);
+   $rows = nsc_query($pg, 'SELECT id, date, type, data FROM event WHERE id > $1 ORDER BY id', array($lastId));
+   if (count($rows) > 0 && intval($rows[0][0]) != $lastId + 1)
+      nsc_die('ERR_TOO_MANY_EVENTS', 'Too many events have occurred since the specified last event ID.');
 
-echo json_encode(array('lastEventId' => intval(file_get_contents($filePath)), 'events' => $returnEvents));        
+   $returnEvents = array();
+   foreach ($rows as $row)
+   {
+      $returnEvents[] = array(
+         'eventId' => intval($row[0]),
+         'eventDate' => nsc_date(strtotime($row[1])),
+         'eventType' => strval($row[2]),
+         'eventData' => json_decode(strval($row[3])),
+      );
+   }
+}
+else
+{
+   $returnEvents = array_reverse($returnEvents);
+}
+
+if (count($returnEvents) > 0)
+   $lastId = $returnEvents[count($returnEvents) - 1]['eventId'];
+
+echo json_encode(array('lastEventId' => $lastId, 'events' => $returnEvents));        

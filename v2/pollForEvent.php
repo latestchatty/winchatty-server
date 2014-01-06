@@ -23,15 +23,24 @@ $lastId = nsc_getArg('lastEventId', 'INT');
 if ($lastId > intval(file_get_contents($filePath)))
    nsc_die('NSC_ARGUMENT', 'lastEventId is higher than any existing event.');
 
-$lastEvents = unserialize(file_get_contents($eventsFilePath));
+$pg = nsc_connectToDatabase();
+
+$rows = nsc_query($pg, 'SELECT id, date, type, data FROM event WHERE id > $1 ORDER BY id', array($lastId));
+if (count($rows) > 0 && intval($rows[0][0]) != $lastId + 1)
+   nsc_die('ERR_TOO_MANY_EVENTS', 'Too many events have occurred since the specified last event ID.');
+
 $returnEvents = array();
-foreach ($lastEvents as $event)
-   if ($event['eventId'] > $lastId)
-      $returnEvents[] = $event;
+foreach ($rows as $row)
+{
+   $returnEvents[] = array(
+      'eventId' => intval($row[0]),
+      'eventDate' => nsc_date(strtotime($row[1])),
+      'eventType' => strval($row[2]),
+      'eventData' => json_decode(strval($row[3])),
+   );
+}
 
-if (count($returnEvents) > 100)
-   nsc_die('ERR_TOO_MANY_EVENTS', 'More than 100 events have occurred since the specified last event ID.');
+if (count($returnEvents) > 0)
+   $lastId = $returnEvents[count($returnEvents) - 1]['eventId'];
 
-$returnEvents = array_reverse($returnEvents);
-
-echo json_encode(array('lastEventId' => intval(file_get_contents($filePath)), 'events' => $returnEvents));        
+echo json_encode(array('lastEventId' => $lastId, 'events' => $returnEvents));        
