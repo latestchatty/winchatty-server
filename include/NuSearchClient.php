@@ -61,7 +61,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
    else if ($isMissing)
       nsc_die('ERR_ARGUMENT', "Missing argument '$parName'.");
 
-   $max = 4294967295;
+   $max = 2147483647;
    if (strpos($parType, ',') !== false)
    {
       $parts = explode(',', $parType);
@@ -139,7 +139,12 @@ function nsc_arg($args, $parName, $parType, $def = null)
    {
       $intList = array();
       foreach ($argItems as $str)
+      {
+         $val = intval($str);
+         if ($val > 2147483647)
+            nsc_die('ERR_ARGUMENT', "Argument '$parName' is out of range.  Maximum: 2147483647.");
          $intList[] = intval($str);
+      }
       return $intList;
    }
    else if (!$isList && $parType == 'INT')
@@ -830,11 +835,11 @@ function nsc_logEvent($pg, $type, $data)
    rename('/mnt/ssd/ChattyIndex/LastEventID2', '/mnt/ssd/ChattyIndex/LastEventID');
 }
 
-function nsc_getActiveThreadIds($pg, $expiration = 18, $count = 1000)
+function nsc_getActiveThreadIds($pg, $expiration = 18, $limit = 1000, $offset = 0)
 {
    $rows = nsc_query($pg, 
-      "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '$expiration hours') ORDER BY thread.bump_date DESC LIMIT \$1",
-      array($count));
+      "SELECT thread.id FROM thread INNER JOIN post ON thread.id = post.id WHERE thread.date > (NOW() - interval '$expiration hours') ORDER BY thread.bump_date DESC OFFSET \$1 LIMIT \$2",
+      array($offset, $limit));
    $ids = array();
    foreach ($rows as $row)
       $ids[] = intval($row[0]);
