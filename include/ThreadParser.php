@@ -102,8 +102,8 @@ class ThreadParser extends Parser
          }
          $contentTypeId = intval($contentTypeIdStr);
       }
-      if ($contentTypeId != 2 && $contentTypeId != 17)
-         throw new Exception('This post is not in the main chatty.');
+      if ($contentTypeId !== false && $contentTypeId != 2 && $contentTypeId != 17)
+         throw new Exception('This post is not in the main chatty. ' . $contentTypeId);
    }
 
    public function getThreadTree($threadID)
