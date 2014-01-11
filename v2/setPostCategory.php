@@ -15,8 +15,25 @@
 
 require_once 'Global.php';
 $pg = nsc_initJsonPost();
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
 $postId = nsc_postArg('postId', 'INT');
+$category = nsc_postArg('category', 'MODN');
+
+$posts = nsc_getPosts($pg, array($postId));
+if (empty($posts))
+   nsc_die('ERR_ARGUMENT', 'Specify a valid post ID.');
+$threadId = $posts[0]['threadId'];
+
+try
+{
+   ChattyParser()->setPostCategory($username, $password, $threadId, $postId, $category);
+}
+catch (Exception $e)
+{
+   nsc_handleException($e);
+}
 
 nsc_reindex($pg, $postId);
 
-echo json_encode(array('result' => 'success'));
+die(json_encode(array('result' => 'success')));

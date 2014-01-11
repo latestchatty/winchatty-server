@@ -97,6 +97,8 @@ function startIndex() # void
 
       executeOrThrow($pg, SQL_RESET_NEXT_NEW_POST_ID, array());
 
+      executeOrThrow($pg, 'DELETE FROM client_session WHERE expire_date < NOW()', array());
+
       $lastNukeRetry = time() - 10;
       $lastRevisit = time() - 5;
       $lastNewPost = 0;
@@ -190,7 +192,7 @@ function processReindexRequests($pg)
    foreach ($ids as $id)
    {
       echo "Requested reindex: $id\n";
-      tryIndexPost($pg, intval($id), false);
+      tryIndexPost($pg, intval($id), false, true);
       executeOrThrow($pg, 'DELETE FROM reindex_request WHERE post_id = $1', array(intval($id)));
    }
    
@@ -297,7 +299,7 @@ function getNextNukedPostID($pg) # integer (post ID) or false
       return intval($id);
 }
 
-function tryIndexPost($pg, $id, $ignoreNuke) # bool
+function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
 {
    global $statusFlag;
    global $inserted;
@@ -309,7 +311,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
 
    $alreadyNuked = isPostNuked($pg, $id);
    $reattempts = $alreadyNuked ? getNukedPostRetries($pg, $id) : 0;
-   if ($alreadyNuked && $reattempts >= MAX_NUKED_RETRIES)
+   if ($alreadyNuked && $reattempts >= MAX_NUKED_RETRIES && !$force)
       return false; # We've given up on this one.
 
    $nuked = false;
@@ -333,7 +335,7 @@ function tryIndexPost($pg, $id, $ignoreNuke) # bool
 
       try
       {
-         $thread = getThread($id); # throws exception on failure
+         $thread = getThread($id, !$force); # throws exception on failure
          $postWasFound = indexThread($pg, $id, $thread);
 
          if (!$postWasFound)
@@ -497,7 +499,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          if ($oldModFlag != $newModFlag)
          {
             executeOrThrow($pg, SQL_UPDATE_CATEGORY, array($newModFlag, $id));
-            logPostEdit($pg, $id, $post['category']);
+            logPostEdit($pg, $id, $newModFlag);
          }
       }
       else
@@ -701,12 +703,13 @@ function flagStringToInt($flag)
    }
 }
 
-function getThread($id) # thread object
+function getThread($id, $useCache = true) # thread object
 {
    global $cachedThreads;
 
    $thread = false;
-   if (isset($cachedThreads[strval($id)]))
+
+   if ($useCache && isset($cachedThreads[strval($id)]))
    {
       $thread = $cachedThreads[strval($id)];
    }
