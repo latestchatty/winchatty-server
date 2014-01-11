@@ -103,7 +103,12 @@ function nsc_arg($args, $parName, $parType, $def = null)
             $ok = (strtotime($argItem) !== false);
             break;
          case 'MOD':
-            $ok = ($argItem == 'ontopic' || $argItem == 'nws' || $argItem == 'stupid' || $argItem == 'political' || $argItem == 'tangent' || $argItem == 'informative');
+            $ok = ($argItem == 'ontopic' || $argItem == 'nws' || $argItem == 'stupid' || $argItem == 'political' || 
+               $argItem == 'tangent' || $argItem == 'informative');
+            break;
+         case 'MODN':
+            $ok = ($argItem == 'ontopic' || $argItem == 'nws' || $argItem == 'stupid' || $argItem == 'political' || 
+               $argItem == 'tangent' || $argItem == 'informative' || $argItem == 'nuked');
             break;
          case 'MBX':
             $ok = ($argItem == 'inbox' || $argItem == 'sent');
@@ -128,6 +133,7 @@ function nsc_arg($args, $parName, $parType, $def = null)
    switch ($parType)
    {
       case 'MOD':
+      case 'MODN':
       case 'MBX':
       case 'PET':
       case 'MPT':
@@ -849,6 +855,21 @@ function nsc_getActiveThreadIds($pg, $expiration = 18, $limit = 1000, $offset = 
 function nsc_getNewestEventId($pg)
 {
    return intval(nsc_selectValue($pg, 'SELECT id FROM event ORDER BY id DESC LIMIT 1', array()));
+}
+
+function nsc_reindex($pg, $postId)
+{
+   $postId = intval($postId);
+   nsc_execute($pg, 'INSERT INTO reindex_request (post_id) VALUES ($1)', array($postId));
+
+   while (true)
+   {
+      $id = nsc_selectValueOrFalse($pg, 'SELECT post_id FROM reindex_request WHERE post_id = $1', array($postId));
+      if ($id === false)
+         break;
+      else
+         sleep(1);
+   }
 }
 
 function nsc_v1_date($time)

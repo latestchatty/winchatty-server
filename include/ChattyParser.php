@@ -200,6 +200,37 @@ class ChattyParser extends Parser
       $html = $this->userDownload('http://www.shacknews.com/moderators', $username, $password);
       return strpos($html, '<div id="mod_board_head">') !== false;
    }
+
+   public function setPostCategory($username, $password, $threadId, $postId, $category)
+   {
+      $threadId = intval($threadId);
+      $postId = intval($postId);
+
+      if ($threadId == 0)
+         throw new Exception('Invalid thread ID.');
+
+      # Shacknews uses different number assignments than we do.
+      $categoryInt = false;
+      switch ($category)
+      {
+         case 'ontopic':     $categoryInt = 5; break;
+         case 'nws':         $categoryInt = 2; break;
+         case 'stupid':      $categoryInt = 3; break;
+         case 'political':   $categoryInt = 9; break;
+         case 'tangent':     $categoryInt = 4; break;
+         case 'informative': $categoryInt = 1; break;
+         case 'nuked':       $categoryInt = 8; break;
+         default: throw new Exception('Unexpected category string.');
+      }
+
+      $url = "http://www.shacknews.com/mod_chatty.x?root=$threadId&post_id=$postId&mod_type_id=$categoryInt";
+
+      $html = $this->userDownload($url, $username, $password);
+      if (strpos($html, 'Invalid moderation flags') !== false)
+         throw new Exception('Possible bug in the API. Server does not understand the moderation flag.');
+      if (strpos($html, 'navigate_page_no_history( window, "/frame_chatty.x?root=') === false)
+         throw new Exception('Failed to set the post category.  User likely does not have moderator privileges.');
+   }
 }
 
 function ChattyParser()
