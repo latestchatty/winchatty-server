@@ -194,6 +194,12 @@ class ChattyParser extends Parser
          'page' => 1,
          'thread' => $thread['id']);
    }
+
+   public function isModerator($username, $password)
+   {
+      $html = $this->userDownload('http://www.shacknews.com/moderators', $username, $password);
+      return strpos($html, '<div id="mod_board_head">') !== false;
+   }
 }
 
 function ChattyParser()

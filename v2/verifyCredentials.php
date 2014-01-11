@@ -18,18 +18,20 @@ $pg = nsc_initJsonPost();
 $username = nsc_postArg('username', 'STR');
 $password = nsc_postArg('password', 'STR');
 
+$isModerator = false;
+
 try
 {
-   MessageParser()->getUserID($username, $password);
+   $isModerator = ChattyParser()->isModerator($username, $password);
 }
 catch (Exception $e)
 {
    $message = $e->getMessage();
 
    if (trim(strtolower($message)) == 'unable to log into user account.')
-      die(json_encode(array('isValid' => false)));
+      die(json_encode(array('isValid' => false, 'isModerator' => false)));
 
    nsc_die('ERR_SERVER', $message);
 }
 
-die(json_encode(array('isValid' => true)));
+die(json_encode(array('isValid' => true, 'isModerator' => $isModerator)));
