@@ -21,7 +21,6 @@ if (php_sapi_name() !== 'cli')
 define('MAX_NUKED_RETRIES',     4);
 define('TOTAL_TIME_SEC',        300);
 define('RETRY_INTERVAL_SEC',    35);
-define('REVISIT_INTERVAL_SEC',  200);  # Effectively once every 5 minutes.  Runs towards the end of the cycle.
 define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
@@ -99,24 +98,19 @@ function startIndex() # void
 
       executeOrThrow($pg, 'DELETE FROM client_session WHERE expire_date < NOW()', array());
 
+      # Check for nuked threads
+      $statusFlag = 'V';
+      beginTransaction($pg);
+      revisitThread($pg);
+      commitTransaction($pg);
+
       $lastNukeRetry = time() - 10;
-      $lastRevisit = time() - 5;
       $lastNewPost = 0;
 
       while ((time() - $cycleStartTime) < TOTAL_TIME_SEC)
       {
          $statusFlag = 'Q';
          processReindexRequests($pg);
-
-         if ((time() - $lastRevisit) >= REVISIT_INTERVAL_SEC)
-         {
-            $statusFlag = 'V';
-            beginTransaction($pg);
-            revisitThread($pg);
-            commitTransaction($pg);
-
-            $lastRevisit = time();
-         }
 
          if ((time() - $lastNukeRetry) >= RETRY_INTERVAL_SEC)
          {
@@ -249,7 +243,7 @@ function retryNukedPost($pg) # bool
    if ($nukedPostID === false)
       return false; # No more nuked posts
 
-   tryIndexPost($pg, $nukedPostID, false);
+   tryIndexPost($pg, $nukedPostID, false, true);
 
    return true; # May be more nuked posts
 }
@@ -283,7 +277,7 @@ function revisitThread($pg)
    {
       $found = isset($actualThreadIds[$expectedThreadId]);
       if (!$found)
-         tryIndexPost($pg, $expectedThreadId, false);
+         tryIndexPost($pg, $expectedThreadId, false, true);
    }
 }
 
