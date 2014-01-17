@@ -36,12 +36,17 @@ $messages = array();
 
 foreach ($m['messages'] as $msg)
 {
+   # Correct for a Shacknews bug in reporting message timestamps.
+   # Shacknews will report "January 17, 2014, 6:18 am", the current UTC time is "January 17, 2014, 10:18 pm".
+   # So we will treat it as UTC, and then offset by +16 hours.
+   $time = strtotime($msg['date'] . ' UTC') + (16 * 60 * 60);
+
    $messages[] = array(
       'id' => intval($msg['id']),
       'from' => strval($msg['from']),
       'to' => strval($msg['to']),
       'subject' => strval($msg['subject']),
-      'date' => nsc_date(strtotime($msg['date'])),
+      'date' => nsc_date($time),
       'body' => strval($msg['body']),
       'unread' => $msg['unread']
    );
