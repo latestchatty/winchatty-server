@@ -89,7 +89,7 @@ class Parser
       curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
       curl_setopt($curl, CURLOPT_USERAGENT, 'WinChatty API');
       curl_setopt($curl, CURLOPT_HTTPHEADER, array('X-Requested-With: libcurl'));
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
 
       curl_setopt($curl, CURLOPT_URL, $url);
       curl_setopt($curl, CURLOPT_POST, false);
@@ -158,7 +158,7 @@ class Parser
       curl_setopt($curl, CURLOPT_COOKIEJAR, $cookiejar);
       curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
       curl_setopt($curl, CURLOPT_USERAGENT, 'WinChatty API');
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
 
       # Log in first.
       $fields = 'get_fields%5B%5D=result&user-identifier=' . urlencode($username) . '&supplied-pass=' . urlencode($password);
