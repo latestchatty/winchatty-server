@@ -832,7 +832,7 @@ function nsc_logEvent($pg, $type, $data)
       );
    }
 
-   nsc_execute($pg, 'DELETE FROM event WHERE id < $1', array($newestId - 2000));
+   nsc_execute($pg, 'DELETE FROM event WHERE id < $1', array($newestId - 10000));
 
    file_put_contents('/mnt/ssd/ChattyIndex/LastEvents2', serialize($events));
    rename('/mnt/ssd/ChattyIndex/LastEvents2', '/mnt/ssd/ChattyIndex/LastEvents');
