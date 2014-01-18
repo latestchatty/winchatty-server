@@ -1,2 +1,2 @@
 <?
-header('Location: http://winchatty.com/nusearch');
+header('Location: https://winchatty.com/nusearch');
