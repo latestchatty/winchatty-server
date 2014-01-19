@@ -134,7 +134,6 @@ $load = trim($loadArray[1]);
          and thus it is impervious to Shacknews search outages.  It improves on the years-old WinChatty Search and
          introduces support for the current iteration of the Shacknews website.
          <ul>
-            <li>This is a <b>complete</b> index of the Shacknews comments.</li>
             <li>New comments are indexed every five seconds.</li>
             <li>Multi-term searches work properly (logical AND).</li>
             <li>Future applications and APIs will be enabled by this database.  
@@ -144,7 +143,7 @@ $load = trim($loadArray[1]);
          @electroly<br>
          <br>
          P.S. The Shacknews-based search engine is <a class="link" href="/search">still available if needed</a>.<br>
-         P.P.S. Install the <a class="link" href="http://s3.amazonaws.com/winchatty/WinChatty-3.1.air">WinChatty desktop client</a> 
+         P.P.S. Install the <a class="link" href="//s3.amazonaws.com/winchatty/WinChatty-3.1.air">WinChatty desktop client</a> 
          for a rich chatty experience.  <a class="link" href="http://get.adobe.com/air">Adobe AIR</a> required.<br>
          <br>
          <table id="stats">
