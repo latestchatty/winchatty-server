@@ -410,12 +410,7 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
       if ($isPostIndexed)
          executeOrThrow($pg, 'DELETE FROM post WHERE id = $1', array($id));
       
-      if ($statusFlag == 'V' && !$alreadyNuked)
-      {
-         # We're revisiting this thread.  If it's nuked, then we need to push
-         # that fact out.
-         logPostEdit($pg, $id, 7); # nuked
-      }
+      logPostEdit($pg, $id, 7); # nuked
 
       return true;
    }
