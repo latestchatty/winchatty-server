@@ -68,7 +68,20 @@ foreach ($posts as $post)
 
 $searchResults = array();
 foreach ($postIds as $postId)
-   $searchResults[] = $dict[$postId];
+{
+   if (isset($dict[$postId]))
+      $searchResults[] = $dict[$postId];
+   else
+      $searchResults[] = array(
+         'id' => 0,
+         'threadId' => 0,
+         'parentId' => 0,
+         'author' => 'Duke Nuked',
+         'category' => 'ontopic',
+         'date' => nsc_date(strtotime('1980-01-01 Midnight UTC')),
+         'body' => '<span class="jt_red"><b>* N U K E D *</b></span>'
+      );
+}
 
 echo json_encode(array('posts' => $searchResults));
 
