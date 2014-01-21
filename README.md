@@ -3,8 +3,8 @@ winchatty-server
 
 WinChatty Server is a PHP-based web service providing the following Shacknews chatty APIs:
 - WinChatty v1 API for JSON (compatible with LC.app)
-- WinChatty v1 API for AMF (compatible with WinChatty)
-- WinChatty v2 API (compatible with Lamp 5.2 and Shack Browse 3.1)
+- WinChatty v1 API for AMF (compatible with WinChatty 3.0)
+- WinChatty v2 API (compatible with WinChatty 3.1, Lamp 5.2, Shack Browse 3.1)
 
 In the current version in development, WinChatty Server has its own comments database.  It brings in posts from the Shacknews website periodically, and serves the API from the local database.
 
