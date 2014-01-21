@@ -23,7 +23,52 @@ $offset = nsc_getArg('offset', 'INT?', 0);
 $limit = nsc_getArg('limit', 'INT?,500', 35);
 $oldestFirst = nsc_getArg('oldestFirst', 'BIT?', false);
 
-$posts = nsc_search($pg, $terms, $author, $parentAuthor, $category, $offset, $limit, $oldestFirst);
+if (empty($terms) && empty($author) && empty($parentAuthor))
+   nsc_die('ERR_SERVER', '(Temporary) A search term, author, or parent author query is required.');
 
-echo json_encode(array('posts' => $posts));
+#$posts = nsc_search($pg, $terms, $author, $parentAuthor, $category, $offset, $limit, $oldestFirst);
+
+$perPage = 15;
+$startingPage = floor((float)$offset / (float)$perPage);
+$startingPageFirstIndex = $offset - ($startingPage * $perPage);
+$endingPage = floor((float)($offset + $limit - 1) / (float)$perPage);
+$endingPageLastIndex = ($offset + $limit - 1) - ($endingPage * $perPage);
+
+$startingPage++;
+$endingPage++;
+
+$postIds = array();
+for ($page = $startingPage; $page <= $endingPage; $page++)
+{
+   $pageResults = SearchParser()->search($terms, $author, $parentAuthor, $category, $page, $oldestFirst);
+   if (empty($pageResults))
+      break;
+   
+   foreach ($pageResults as $i => $result)
+   {
+      if ($page == $startingPage && $i < $startingPageFirstIndex)
+      {
+         # Nothing
+      }
+      else if ($page == $endingPage && $i > $endingPageLastIndex)
+      {
+         break;
+      }
+      else
+      {
+         $postIds[] = intval($result['id']);
+      }
+   }
+}
+
+$posts = nsc_getPosts($pg, $postIds);
+$dict = array();
+foreach ($posts as $post)
+   $dict[$post['id']] = $post;
+
+$searchResults = array();
+foreach ($postIds as $postId)
+   $searchResults[] = $dict[$postId];
+
+echo json_encode(array('posts' => $searchResults));
 

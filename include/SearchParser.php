@@ -15,7 +15,7 @@
 
 class SearchParser extends Parser
 {
-   public function search($terms, $author, $parentAuthor, $category, $page)
+   public function search($terms, $author, $parentAuthor, $category, $page, $oldestFirst = false)
    {
       if (empty($category))
          $category = 'all';
@@ -28,7 +28,7 @@ class SearchParser extends Parser
          . '&chatty_author=' . urlencode($parentAuthor) 
          . '&chatty_filter=' . urlencode($category)
          . '&page=' . urlencode($page)
-         . '&result_sort=postdate_desc';
+         . ($oldestFirst ? '&result_sort=postdate_asc' : '&result_sort=postdate_desc');
       
       $this->init($this->download($url));
       
