@@ -59,7 +59,10 @@ class SearchParser extends Parser
             'story_id' => 0,
             'story_name' => '',
             'thread_id' => 0);
-            
+         
+         if ($this->peek(1, '<span class="chatty-author">') === false)
+            break;
+
          # <span class="chatty-author"><a class="more" href="/user/pigvomit/posts">pigvomit:</a></span>
          $o['author'] = $this->clip(
             array('<span class="chatty-author">', '<a class="more"', '>'),
