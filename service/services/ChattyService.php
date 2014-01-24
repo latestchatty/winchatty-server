@@ -80,6 +80,18 @@ class ChattyService
       return $eventId;
    }
 
+   public function waitForEventId($lastId)
+   {
+      $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+      while (intval(file_get_contents($filePath)) <= $lastId)
+      {
+         sleep(1);
+         # I know, right?  Gets the job done though.  Programming is hard.
+      }
+
+      return intval(file_get_contents($filePath));
+   }
+
    public function verifyCredentials($username, $password)
    {
       try
