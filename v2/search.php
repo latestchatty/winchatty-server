@@ -40,7 +40,15 @@ $endingPage++;
 $postIds = array();
 for ($page = $startingPage; $page <= $endingPage; $page++)
 {
-   $pageResults = SearchParser()->search($terms, $author, $parentAuthor, $category, $page, $oldestFirst);
+   try
+   {
+      $pageResults = SearchParser()->search($terms, $author, $parentAuthor, $category, $page, $oldestFirst);
+   }
+   catch (Exception $e)
+   {
+      nsc_handleException($e);
+   }
+
    if (empty($pageResults))
       break;
    
@@ -61,6 +69,9 @@ for ($page = $startingPage; $page <= $endingPage; $page++)
    }
 }
 
+if (empty($postIds))
+   die(json_encode(array('posts' => array())));
+
 $posts = nsc_getPosts($pg, $postIds);
 $dict = array();
 foreach ($posts as $post)
@@ -73,7 +84,7 @@ foreach ($postIds as $postId)
       $searchResults[] = $dict[$postId];
    else
       $searchResults[] = array(
-         'id' => 0,
+         'id' => $postId,
          'threadId' => 0,
          'parentId' => 0,
          'author' => 'Duke Nuked',
