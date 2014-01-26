@@ -3,6 +3,11 @@ require_once '../../include/Global.php';
 
 class ChattyService
 {
+   public function getCurrentWinChattyVersion()
+   {
+      return '3.1';
+   }
+
    public function getStories()
    {
       #return StoriesFeedParser()->getStories();
