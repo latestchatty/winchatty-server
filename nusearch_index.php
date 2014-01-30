@@ -18,14 +18,14 @@ require_once 'include/Global.php';
 if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
 
-define('MAX_NUKED_RETRIES',     4);
+define('MAX_NUKED_RETRIES',     10);
 define('TOTAL_TIME_SEC',        300);
 define('RETRY_INTERVAL_SEC',    35);
 define('NEW_POST_INTERVAL_SEC', 5);
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
 define('SQL_GET_NEXT_NEWEST_NUKED_POST_ID', 
-       "SELECT id FROM nuked_post WHERE (reattempts = 0 AND last_date < (NOW() - interval '1 minute')) OR (reattempts < 4 AND last_date < (NOW() - interval '5 minutes')) ORDER BY reattempts, id DESC LIMIT 1");
+       "SELECT id FROM nuked_post WHERE (reattempts = 0 AND last_date < (NOW() - interval '30 seconds')) OR (reattempts < 10 AND last_date < (NOW() - interval '1 minutes')) ORDER BY reattempts, id DESC LIMIT 1");
 define('SQL_GET_NEXT_OLD_POST_ID',
        'SELECT next_low_id FROM indexer LIMIT 1');
 define('SQL_RESET_NEXT_NEW_POST_ID',
@@ -446,6 +446,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
    
    $targetId = $id;
    $targetFound = false;
+   $didInsert = false;
 
    # See if the thread itself is indexed.
    if (!isset($thread['id']))
@@ -469,6 +470,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
       if ($threadDate === false)
          $threadDate = strtotime('1969-12-31');
       executeOrThrow($pg, SQL_INSERT_THREAD, array($threadId, date('c', $bumpDate), date('c', $threadDate)));
+      $didInsert = true;
    }
 
    foreach ($thread['replies'] as $post)
@@ -508,6 +510,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          $bodyC = strtolower(strip_tags($post['body']));
          executeOrThrow($pg, SQL_INSERT_POST, array(
             $id, $threadId, $post['parent_id'], $post['author'], $post['category'], $post['date'], $post['body'], $authorC, $bodyC));
+         $didInsert = true;
 
          # Update our text index
          updateIndexForPost($pg, $id, $bodyC);
@@ -521,7 +524,9 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
    foreach ($thread['replies'] as $post)
       if (strtotime($post['date']) > $newestTime)
          $newestTime = strtotime($post['date']);
-   executeOrThrow($pg, SQL_BUMP_THREAD, array($threadId));
+
+   if ($didInsert)
+      executeOrThrow($pg, SQL_BUMP_THREAD, array($threadId));
 
    # See if there are any posts in the database which have since been nuked
    foreach (selectArrayOrThrow($pg, SQL_SELECT_THREAD_POST_IDS, array($threadId)) as $postId)
@@ -540,7 +545,7 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
          # $postId exists in the database but not in real ife.  It has been nuked.
          # We will delete it from our database.
          executeOrThrow($pg, SQL_DELETE_POST, array($postId));
-         logPostEdit($pg, $id, 7); # nuked
+         logPostEdit($pg, $postId, 7); # nuked
       }
    }
 
@@ -865,6 +870,10 @@ function logPostEdit($pg, $id, $categoryInt)
    #executeOrThrow($pg, 
       #'INSERT INTO post_edit (post_id, category, date) VALUES ($1, $2, NOW())',
       #array($id, $categoryInt));
+
+   $categoryStr = false;
+   if (!is_int($categoryInt))
+      die("BUG: Non-integer passed to logPostEdit!!!\n");
 
    # [E_CATC]
    $catc = array(
