@@ -15,7 +15,7 @@
 
 require_once 'Global.php';
 $pg = nsc_initJsonGet();
-$idList = nsc_getArg('id', 'INT+,50');
+$idList = nsc_getArg('id', 'INT+,200');
 
 $threads = array();
 foreach ($idList as $id)
