@@ -41,16 +41,24 @@ class MessageParser extends Parser
       # Skip down to the start of the Message Center
       $this->seek(1, '<div class="large-label-black">Message Center</div>');
 
-      # <div class="showing-column">showing 1-50 of 1717</div> 
-      $o['total'] = intval($this->clip(
-         array('<div class="showing-column">', '>', 'of', ' '),
-         '</div>'));
-         
-      # Compute the last_page based on the total.
-      $o['last_page'] = ceil($o['total'] / $messagesPerPage);
+      if ($this->peek(1, '<div class="showing-column">') === false)
+      {
+         $o['total'] = 0;
+         $o['last_page'] = 1;
+      }
+      else
+      {
+         # <div class="showing-column">showing 1-50 of 1717</div> 
+         $o['total'] = intval($this->clip(
+            array('<div class="showing-column">', '>', 'of', ' '),
+            '</div>'));
+            
+         # Compute the last_page based on the total.
+         $o['last_page'] = ceil($o['total'] / $messagesPerPage);
 
-      # Read the individual messages
-      $this->seek(1, '<ul id="messages">');
+         # Read the individual messages
+         $this->seek(1, '<ul id="messages">');
+      }
       
       while ($this->peek(1, '<li class="message') !== false)
       {
