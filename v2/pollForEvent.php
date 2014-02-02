@@ -20,9 +20,6 @@ $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
 $eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
 $lastId = nsc_getArg('lastEventId', 'INT');
 
-if ($lastId > intval(file_get_contents($filePath)))
-   nsc_die('NSC_ARGUMENT', 'lastEventId is higher than any existing event.');
-
 $pg = nsc_connectToDatabase();
 
 $rows = nsc_query($pg, 'SELECT id, date, type, data FROM event WHERE id > $1 ORDER BY id', array($lastId));
