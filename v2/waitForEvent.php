@@ -20,11 +20,11 @@ $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
 $eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
 $lastId = nsc_getArg('lastEventId', 'INT');
 
-$attempts = 0;
+if ($lastId > intval(file_get_contents($filePath)))
+   nsc_die('NSC_ARGUMENT', 'lastEventId is higher than any existing event.');
 
-while ($attempts < 60 && intval(file_get_contents($filePath)) <= $lastId)
+while (intval(file_get_contents($filePath)) <= $lastId)
 {
-   $attempts++;
    sleep(1);
    # I know, right?  Gets the job done though.  Programming is hard.
 }
