@@ -65,6 +65,11 @@ class ChattyParser extends Parser
       else
          throw new Exception('Cannot post in ancient (pre-NuShack) threads.');
       
+      # Hack to fix a bizarre issue where a parsing error is returned when the
+      # post starts with an '@' symbol.
+      if (strlen($body) > 1 && $body[0] == '@')
+         $body = ' ' . $body; 
+
       $postArgs = array(
          'parent_id' => $parentID,
          'content_type_id' => strval($contentID),
