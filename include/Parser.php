@@ -72,7 +72,7 @@ class Parser
       $c2 = $this->cursors[2];
       return substr($this->html, $c1, $c2 - $c1);
    }
-   
+
    protected function download($url, $fast = false)
    {
       # This function will reuse a login over and over again until Shacknews kicks us off.
@@ -129,7 +129,7 @@ class Parser
             curl_setopt($curl, CURLOPT_POSTFIELDS, null);
             $html = curl_exec($curl);
             curl_close($curl);
-            return $html;
+            return str_replace("\0", "", $html);
          }
          else
          {
@@ -139,7 +139,7 @@ class Parser
       }
       
       curl_close($curl);
-      return $html;
+      return str_replace("\0", "", $html);
    }
    
    protected function userDownload($url, $username, $password, $postArgs = null)
@@ -198,6 +198,6 @@ class Parser
       curl_close($curl);
       unlink($cookiejar);
       
-      return $html;
+      return str_replace("\0", "", $html);
    }
 }
