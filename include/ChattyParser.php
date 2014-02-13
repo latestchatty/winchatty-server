@@ -51,19 +51,17 @@ class ChattyParser extends Parser
    public function post($username, $password, $parentID, $storyID, $body)
    {
       $postURL = 'http://www.shacknews.com/post_chatty.x';
-      
-      if ($parentID == 0)
-         $parentID = '';
+      $contentTypeID = 17;
+      $contentID = 17;
 
-      $thread = ThreadParser()->getThreadTree($parentID);
-      $rootID = intval($thread['id']);
-      $rootAuthor = strval($thread['author']);
-      if ($rootAuthor == 'Shacknews')
-         $contentID = 2;
-      else if ($rootID >= 25350136)
-         $contentID = 17;
-      else
-         throw new Exception('Cannot post in ancient (pre-NuShack) threads.');
+      if ($parentID != 0)
+      {
+         $html = $this->download("http://www.shacknews.com/chatty?id=$parentID", true);
+         $this->init($html);
+         $this->seek(1, '<input type="hidden" name="content_type_id"');
+         $contentTypeID = intval($this->clip(array('value="', '"'), '"'));
+         $contentID = intval($this->clip(array('value="', '"'), '"'));
+      }
       
       # Hack to fix a bizarre issue where a parsing error is returned when the
       # post starts with an '@' symbol.
@@ -71,8 +69,8 @@ class ChattyParser extends Parser
          $body = ' ' . $body; 
 
       $postArgs = array(
-         'parent_id' => $parentID,
-         'content_type_id' => strval($contentID),
+         'parent_id' => $parentID == 0 ? '' : $parentID,
+         'content_type_id' => strval($contentTypeID),
          'content_id' => strval($contentID), 
          'page' => '', 
          'parent_url' => '/chatty',
@@ -87,7 +85,7 @@ class ChattyParser extends Parser
       
       return $retVal;
    }
-   
+      
    public function parseStory($html)
    {
       $this->init($html);
