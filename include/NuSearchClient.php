@@ -1239,6 +1239,6 @@ function nsc_shackApiFlagIntToString($sFlag)
       case 4: return 'tangent';
       case 1: return 'informative';
       case 8: return 'nuked';
-      default: throw new Exception('Unexpceted category integer.');
+      default: throw new Exception('Unexpected category integer.');
    }
 }
