@@ -22,6 +22,7 @@ define('MAX_NUKED_RETRIES',     10);
 define('TOTAL_TIME_SEC',        300);
 define('RETRY_INTERVAL_SEC',    35);
 define('NEW_POST_INTERVAL_SEC', 5);
+define('NUKE_SCAN_DELAY_SEC',   26); # Wait N seconds after startup and then run the nuked thread scan
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
 
 define('SQL_GET_NEXT_NEWEST_NUKED_POST_ID', 
@@ -98,19 +99,23 @@ function startIndex() # void
 
       executeOrThrow($pg, 'DELETE FROM client_session WHERE expire_date < NOW()', array());
 
-      # Check for nuked threads
-      $statusFlag = 'V';
-      beginTransaction($pg);
-      revisitThread($pg);
-      commitTransaction($pg);
-
       $lastNukeRetry = time() - 10;
       $lastNewPost = 0;
+      $didCheckForNukedThreads = false;      
 
       while ((time() - $cycleStartTime) < TOTAL_TIME_SEC)
       {
          $statusFlag = 'Q';
          processReindexRequests($pg);
+
+         if (!$didCheckForNukedThreads && (time() - $cycleStartTime) >= NUKE_SCAN_DELAY_SEC)
+         {
+            $statusFlag = 'V';
+            beginTransaction($pg);
+            revisitThread($pg);
+            commitTransaction($pg);
+            $didCheckForNukedThreads = true;
+         }
 
          if ((time() - $lastNukeRetry) >= RETRY_INTERVAL_SEC)
          {
@@ -319,7 +324,7 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
    $numRetries = 0;
    $weekendConfirmed = false;
 
-   $useShackApi = false;
+   #$useShackApi = false;
 
    do 
    {
@@ -332,10 +337,11 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
       try
       {
          $thread = false;
-         if ($useShackApi)
-            $thread = getThread2($id, !$force); # throws exception on failure
-         else
-            $thread = getThread($id, !$force); # throws exception on failure
+         #if ($useShackApi)
+            #$thread = getThread2($id, !$force); # throws exception on failure
+         #else
+            #$thread = getThread($id, !$force); # throws exception on failure
+         $thread = getThread($id, !$force); # throws exception on failure
          $postWasFound = indexThread($pg, $id, $thread);
 
          if (!$postWasFound)
@@ -369,7 +375,7 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
          $error = $e->getMessage();
       }
 
-      if (!$useShackApi && $nuked && $numRetries < 2 && $ignoreNuke)
+      if (/*!$useShackApi &&*/ $nuked && $numRetries < 2 && $ignoreNuke)
       {
          echo "Retrying stalled post $id\n";
          sleep(5);
@@ -703,6 +709,7 @@ function flagStringToInt($flag)
    }
 }
 
+/*
 function shackApiGetThread($id)
 {
    $result = nsc_shackApiGetThread($id);
@@ -740,6 +747,7 @@ function getThread2($id, $useCache = true) # thread object
 
    return $thread;
 }
+*/
 
 function getThread($id, $useCache = true) # thread object
 {
@@ -819,23 +827,6 @@ function generateFrontPageFile($pg)
    $frontPageDataFilePath = search_data_directory . 'FrontPageData';
    $diskFreeBytes = intval(`/bin/df | /bin/grep sdd1 | /usr/bin/awk '{ print $4 }'`);
 
-   /*$oldPostID = intval(selectValueOrThrow($pg, SQL_GET_NEXT_OLD_POST_ID, array())) + 1;
-   $newPostID = intval(selectValueOrThrow($pg, SQL_GET_NEXT_NEW_POST_ID, array())) - 1;
-   $oldestDate = false;
-   $newestDate = false;
-
-   while ($oldestDate === false)
-   {
-      $oldestDate = selectValueOrFalse($pg, 'SELECT date FROM post WHERE id = $1', array($oldPostID));
-      $oldPostID++;
-   }
-
-   while ($newestDate === false)
-   {
-      $newestDate = selectValueOrFalse($pg, 'SELECT date FROM post WHERE id = $1', array($newPostID));
-      $newPostID--;
-   }*/
-
    $data = array(
       'thread_count'       => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM thread', array()),
       'post_count'         => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM post', array()),
@@ -867,10 +858,6 @@ function logNewPost($pg, $id)
 
 function logPostEdit($pg, $id, $categoryInt)
 {
-   #executeOrThrow($pg, 
-      #'INSERT INTO post_edit (post_id, category, date) VALUES ($1, $2, NOW())',
-      #array($id, $categoryInt));
-
    $categoryStr = false;
    if (!is_int($categoryInt))
       die("BUG: Non-integer passed to logPostEdit!!!\n");
