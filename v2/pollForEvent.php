@@ -19,6 +19,7 @@ nsc_assertGet();
 $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
 $eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
 $lastId = nsc_getArg('lastEventId', 'INT');
+$includeParentAuthor = nsc_getArg('includeParentAuthor', 'BIT?', false);
 
 $pg = nsc_connectToDatabase();
 
@@ -29,11 +30,16 @@ if (count($rows) > 0 && intval($rows[0][0]) != $lastId + 1)
 $returnEvents = array();
 foreach ($rows as $row)
 {
+   $eventData = json_decode(strval($row[3]), true);
+
+   if (!$includeParentAuthor && isset($eventData['parentAuthor']))
+      unset($eventData['parentAuthor']);
+
    $returnEvents[] = array(
       'eventId' => intval($row[0]),
       'eventDate' => nsc_date(strtotime($row[1])),
       'eventType' => strval($row[2]),
-      'eventData' => json_decode(strval($row[3])),
+      'eventData' => $eventData,
    );
 }
 

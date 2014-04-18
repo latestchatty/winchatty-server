@@ -19,6 +19,7 @@ nsc_assertGet();
 $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
 $eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
 $lastId = nsc_getArg('lastEventId', 'INT');
+$includeParentAuthor = nsc_getArg('includeParentAuthor', 'BIT?', false);
 
 $attempts = 0; # 10 minute timeout
 while ($attempts < 600 && intval(file_get_contents($filePath)) <= $lastId)
@@ -46,17 +47,37 @@ if (count($returnEvents) > 100)
    $returnEvents = array();
    foreach ($rows as $row)
    {
+      $eventData = json_decode(strval($row[3]), true);
+
+      if (!$includeParentAuthor && isset($eventData['parentAuthor']))
+         unset($eventData['parentAuthor']);
+
       $returnEvents[] = array(
          'eventId' => intval($row[0]),
          'eventDate' => nsc_date(strtotime($row[1])),
          'eventType' => strval($row[2]),
-         'eventData' => json_decode(strval($row[3])),
+         'eventData' => $eventData,
       );
    }
 }
 else
 {
    $returnEvents = array_reverse($returnEvents);
+
+   if (!$includeParentAuthor)
+   {
+      for ($i = 0; $i < count($returnEvents); $i++)
+      {
+         $event = $returnEvents[$i];
+         $eventData = $event['eventData'];
+         if (isset($eventData->parentAuthor))
+         {
+            unset($eventData->parentAuthor);
+            $event['eventData'] = $eventData;
+            $returnEvents[$i] = $event;
+         }
+      }
+   }
 }
 
 if (count($returnEvents) > 0)

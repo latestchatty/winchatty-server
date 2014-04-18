@@ -848,10 +848,21 @@ function logNewPost($pg, $id)
 {
    $posts = nsc_getPosts($pg, array($id));
 
+   $post = $posts[0];
+   $parentId = $post['parentId'];
+   $parentAuthor = '';
+   if ($parentId > 0)
+   {
+      $parentPosts = nsc_getPosts($pg, array($parentId));
+      $parentPost = $parentPosts[0];
+      $parentAuthor = $parentPost['author'];
+   }
+
    # [E_NEWP]
    $newp = array(
       'postId' => intval($id),
-      'post' => $posts[0]
+      'post' => $post,
+      'parentAuthor' => $parentAuthor
    );
    nsc_logEvent($pg, 'newPost', $newp);
 }
