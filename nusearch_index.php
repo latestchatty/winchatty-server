@@ -128,9 +128,9 @@ function startIndex() # void
          }
 
          $forceReadNewPosts = false;
-         if (trim(file_get_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts')) == '1')
+         if (trim(file_get_contents(V2_DATA_PATH . 'ForceReadNewPosts')) == '1')
          {
-            file_put_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts', '');
+            file_put_contents(V2_DATA_PATH . 'ForceReadNewPosts', '');
             $forceReadNewPosts = true;
          }
 
@@ -213,7 +213,7 @@ function getLastID($story) # integer
 
 function connectToDatabase() # postgresql
 {
-   $pg = pg_connect('dbname=chatty user=nusearch password=nusearch');
+   $pg = pg_connect(V2_CONNECTION_STRING);
    if ($pg === false)
       throw new Exception('Failed to connect to chatty database.');
    return $pg;

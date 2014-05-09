@@ -80,14 +80,14 @@ class ChattyService
 
    public function getNewestEventId()
    {
-      $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+      $filePath = V2_DATA_PATH . 'LastEventID';
       $eventId = intval(file_get_contents($filePath));
       return $eventId;
    }
 
    public function waitForEventId($lastId)
    {
-      $filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+      $filePath = V2_DATA_PATH . 'LastEventID';
       while (intval(file_get_contents($filePath)) <= $lastId)
       {
          sleep(1);

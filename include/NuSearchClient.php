@@ -213,7 +213,7 @@ function nsc_assertPost()
 
 function nsc_connectToDatabase() # postgresql
 {
-   $pg = pg_connect('dbname=chatty user=nusearch password=nusearch');
+   $pg = pg_connect(V2_CONNECTION_STRING);
    if ($pg === false)
       nsc_die('ERR_SERVER', "Failed to connect to chatty database.");
    return $pg;
@@ -834,11 +834,11 @@ function nsc_logEvent($pg, $type, $data)
 
    nsc_execute($pg, 'DELETE FROM event WHERE id < $1', array($newestId - 10000));
 
-   file_put_contents('/mnt/ssd/ChattyIndex/LastEvents2', serialize($events));
-   rename('/mnt/ssd/ChattyIndex/LastEvents2', '/mnt/ssd/ChattyIndex/LastEvents');
+   file_put_contents(V2_DATA_PATH . 'LastEvents2', serialize($events));
+   rename(V2_DATA_PATH . 'LastEvents2', V2_DATA_PATH . 'LastEvents');
 
-   file_put_contents('/mnt/ssd/ChattyIndex/LastEventID2', intval($newestId));
-   rename('/mnt/ssd/ChattyIndex/LastEventID2', '/mnt/ssd/ChattyIndex/LastEventID');
+   file_put_contents(V2_DATA_PATH . 'LastEventID2', intval($newestId));
+   rename(V2_DATA_PATH . 'LastEventID2', V2_DATA_PATH . 'LastEventID');
 }
 
 function nsc_getActiveThreadIds($pg, $expiration = 18, $limit = 1000, $offset = 0)

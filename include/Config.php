@@ -18,6 +18,6 @@ define('bookmarks_data_directory',   '/mnt/websites/winchatty.com/data/Bookmarks
 define('locatecache_data_directory', '/mnt/websites/winchatty.com/data/LocateCache/');
 define('search_data_directory',      '/mnt/websites/winchatty.com/data/Search/');
 
-define('use_chattysearchd',  true);
-define('chattysearchd_port', 1302);
-define('search_retention',   66); # Number of pages to retain
+# For WinChatty v2 API
+define('V2_CONNECTION_STRING', 'dbname=chatty user=nusearch password=nusearch');
+define('V2_DATA_PATH', '/mnt/ssd/ChattyIndex/'); # must have trailing slash. must already exist.

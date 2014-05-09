@@ -16,7 +16,7 @@
 require_once 'Global.php';
 nsc_jsonHeader();
 nsc_assertGet();
-$filePath = '/mnt/ssd/ChattyIndex/LastEventID';
+$filePath = V2_DATA_PATH . 'LastEventID';
 
 $eventId = intval(file_get_contents($filePath));
 

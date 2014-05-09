@@ -16,8 +16,8 @@
 require_once 'Global.php';
 nsc_jsonHeader();
 nsc_assertGet();
-$filePath = '/mnt/ssd/ChattyIndex/LastEventID';
-$eventsFilePath = '/mnt/ssd/ChattyIndex/LastEvents';
+$filePath = V2_DATA_PATH . 'LastEventID';
+$eventsFilePath = V2_DATA_PATH . 'LastEvents';
 $lastId = nsc_getArg('lastEventId', 'INT');
 $includeParentAuthor = nsc_getArg('includeParentAuthor', 'BIT?', false);
 

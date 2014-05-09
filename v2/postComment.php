@@ -41,6 +41,6 @@ catch (Exception $e)
    nsc_handleException($e);
 }
 
-file_put_contents('/mnt/ssd/ChattyIndex/ForceReadNewPosts', '1');
+file_put_contents(V2_DATA_PATH . 'ForceReadNewPosts', '1');
 
 die(json_encode(array('result' => 'success')));
