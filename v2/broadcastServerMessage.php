@@ -19,7 +19,7 @@ $username = nsc_postArg('username', 'STR');
 $password = nsc_postArg('password', 'STR');
 $message = nsc_postArg('message', 'STR');
 
-if ($username != 'electroly')
+if ($username != V2_ADMIN_USERNAME)
    nsc_die('ERR_INVALID_LOGIN', 'Enter an administrator username and password.');
 
 try

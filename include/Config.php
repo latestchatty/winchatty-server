@@ -21,3 +21,4 @@ define('search_data_directory',      '/mnt/websites/winchatty.com/data/Search/')
 # For WinChatty v2 API
 define('V2_CONNECTION_STRING', 'dbname=chatty user=nusearch password=nusearch');
 define('V2_DATA_PATH', '/mnt/ssd/ChattyIndex/'); # must have trailing slash. must already exist.
+define('V2_ADMIN_USERNAME', 'electroly'); # this person is allowed to use /v2/broadcastServerMessage
