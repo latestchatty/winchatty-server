@@ -95,8 +95,6 @@ function startIndex() # void
       $knownLastID = getLastID($story);
       printf("Known last ID: %d\n", $knownLastID);
 
-      executeOrThrow($pg, SQL_RESET_NEXT_NEW_POST_ID, array());
-
       executeOrThrow($pg, 'DELETE FROM client_session WHERE expire_date < NOW()', array());
 
       $lastNukeRetry = time() - 10;
