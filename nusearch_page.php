@@ -96,7 +96,7 @@ switch ($model['category'])
 }
 $model['category'] = $category;
 
-$pg = pg_connect('dbname=chatty user=nusearch password=nusearch');
+$pg = nsc_connectToDatabase();
 if ($pg === false)
    die('Failed to connect to chatty database.');
 
