@@ -17,6 +17,9 @@ class ClassicAdapter
 {
    public static function getThread($threadID)
    {
+      if ($threadID == 0)
+         throw new Exception('Thread ID cannot be 0.');
+
       #$thread = ThreadParser()->getThread($threadID, false);
       $pg = nsc_connectToDatabase();
       $thread = nsc_v1_getThreadTree($pg, $threadID);
