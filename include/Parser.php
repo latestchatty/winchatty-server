@@ -101,7 +101,7 @@ class Parser
       
       # We'll keep using the same session until Shacknews kicks us off.
       if ($fast == false && 
-          strpos($html, '<li class="user light"><a href="/user/' . $username . '/posts">' . $username . '</a></li>') === false &&
+          #strpos($html, '<li class="user light"><a href="/user/' . $username . '/posts">' . $username . '</a></li>') === false &&
           strpos($html, '<a id="user_posts" href="/user/' . $username . '/posts">') === false)
       {
 
