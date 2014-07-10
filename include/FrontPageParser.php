@@ -30,29 +30,31 @@ class FrontPageParser extends Parser
       $p->init($html);
 
       $p->seek(1, '<div id="main">');
-      $p->seek(1, '<div id="feature-break">');
+      $p->seek(1, '<div class="content">');
 
       $retList = array();
-      $i = 0;
-      while ($p->peek(1, ' class="story">') !== false)
+      while ($p->peek(1, '<div class="article_copy') !== false)
       {
-         $p->seek(1, ' class="story">');
-         $relativeUrl = $p->clip(array('<h', '><a href="', '"'), '"');
+         $p->seek(1, '<div class="article_copy');
+         $relativeUrl = $p->clip(array('<a href="', '"'), '"');
          $choppedRelativeUrl = str_replace('/article/', '', $relativeUrl);
          $id = substr($choppedRelativeUrl, 0, strpos($choppedRelativeUrl, '/'));
-         $title = $p->clip(array('>'), '<');
+         $title = $p->clip(array('<h2', '>'), '<');
          if (strpos($title, 'Weekend Confirmed') !== false)
             continue;
-         $time = strtotime($p->clip(array('<span class="byline">', 'by ', ',', ' '), '</span>'));
-         $summary = trim($p->clip(array('<div class="summary">', '>'), '</div>'));
-         $commentDiv = $p->clip(array('<div class="small-bubble', '>'), '</div>');
+         $time = strtotime($p->clip(array('<span class="author">', 'By ',', ', ' '), '</span>'));
+         $summary = trim($p->clip(array('<p>', '>'), '</p>'));
          $postCount = 0;
-         if (strpos($commentDiv, 'Comment on this story') === false)
+
+         $commentDivPeek = $p->peek(1, '<div class="comment">');
+         $nextStoryPeek = $p->peek(1, '<div class="article_copy');
+         if ($commentDivPeek !== false && ($nextStoryPeek === false || $commentDivPeek < $nextStoryPeek))
          {
-            $p->seek(1, '<span class="user-credit">');
-            $postCount = $p->clip(array('<a href="', '>', 'See', 'all', ' '), ' comments</a>');
+            $commentDiv = $p->clip(array('<div class="comment">', '>'), '</div>');
+            $p->seek(1, '<span class="author">');
+            $postCount = $p->clip(array('<a href="', '>', 'see all ', 'all', ' '), ' comments</a>');
          }
-         $i++;
+
          $retList[] = array(
             'body' => strval($summary),
             'comment_count' => intval($postCount),
@@ -66,6 +68,7 @@ class FrontPageParser extends Parser
       }
 
       return $retList;
+
    }
 }
 
