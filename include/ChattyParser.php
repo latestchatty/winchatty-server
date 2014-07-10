@@ -105,26 +105,30 @@ class ChattyParser extends Parser
       #
       # Story text
       #
-      # <div id="main"> 
-      # <div class="article-title">Working for the weekend</div> 
-      # <div class="article-author">by Xav de Matos,</div> 
-      # <div class="article-post-date">Feb 25, 2011 5:00pm PST</div> 
-      # <div class="article-body">...</div> 
+      # <div id="main">
+      # <div class="content">
+      # <div class="content-inner">
+      # <div class="main-col">
+      # <div class="article">
+      # <h1>Working for the weekend<h1>
+      # <span class="author">by Xav de Matos, Jul 09, 2014 11:49pm PDT</span>
+      # <div class="article-body">...</div>
       # </div>
+      $this->seek(1, '<div class="article">');
       $o['story_id'] = 0;
       $o['story_name'] = $this->clip(
-         array('<div class="article-title">', '>'), 
-         '</div>');
-      $o['story_author'] = $this->clip( 
-         array('<div class="article-author">by ', '>', ' '),
-         ',</div>');   
+         array('<h1>', '>'),
+         '</h1>');
+      $o['story_author'] = $this->clip(
+         array('<span class="author">', '>By ', ' '),
+         ',');
       $o['story_date'] = $this->clip(
-         array('<div class="article-post-date">', '>'),
-         '</div>');
+         array(', ', ' '),
+         '</span>');
       $o['story_text'] = trim($this->clip(
          array('<div class="article-body">', '>'),
-         '    </div>'));
-      
+         "\t</div>"));
+
       #
       # Page navigation (current page)
       #
