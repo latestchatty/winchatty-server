@@ -39,7 +39,7 @@ class MessageParser extends Parser
          'messages'     => array());
 
       # Skip down to the start of the Message Center
-      $this->seek(1, '<div class="large-label-black">Message Center</div>');
+      $this->seek(1, '<h2>Message Center</h2>');
 
       if ($this->peek(1, '<div class="showing-column">') === false)
       {
