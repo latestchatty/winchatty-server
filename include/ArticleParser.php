@@ -32,12 +32,13 @@ class ArticleParser extends Parser
          'comment_count' => false,
          'id'            => false,
          'thread_id'     => false);
-   
+
       $p->seek(1, '<div id="main">');
 
       $story['name'] = $p->clip(array('<h1>', '>'), '<');
-      $story['date'] = nsc_v1_date(strtotime($p->clip(array('<span class="vitals">', 'by ', ', ', ' '), '</span>')));
-      $story['body'] = '<div>' . $p->clip(array('<div id="article_body">', '>'), '<script type="text/javascript" src="/js/jquery.ba-postmessage.min.js"></script>');
+      $story['date'] = nsc_v1_date(strtotime($p->clip(array('<span class="author">', 'By ', ', ', ' '), '</')));
+      $body = $p->clip(array('>'), '<p><a href="#comments">');
+      $story['body'] = str_replace('src="//', 'src="http://', $body);
       $story['preview'] = nsc_previewFromBody($story['body']);
       $story['comment_count'] = 0;
 
@@ -46,7 +47,7 @@ class ArticleParser extends Parser
 
       $p->seek(1, '<input type="hidden" name="content_type_id" id="content_type_id" value="2" />');
       $story['id'] = intval($p->clip(array('<input type="hidden" value="', 'value', '"'), '"'));
-      
+
       return $story;
    }
 }
