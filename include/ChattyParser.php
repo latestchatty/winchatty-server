@@ -48,20 +48,25 @@ class ChattyParser extends Parser
       return $this->parseStory($this->download($url));
    }
    
-   public function post($username, $password, $parentID, $storyID, $body)
+   public function post($username, $password, $parentID, $storyID, $body, 
+      $contentTypeID = -1, $contentID = -1)
    {
       $postURL = 'http://www.shacknews.com/post_chatty.x';
-      $contentTypeID = 17;
-      $contentID = 17;
 
-      if ($parentID != 0)
+      if ($parentID != 0 && ($contentTypeID == -1 || $contentID == -1))
       {
-         $html = $this->download("http://www.shacknews.com/chatty?id=$parentID", true);
+         $contentURL = "http://www.shacknews.com/chatty?id=$parentID";
+         $html = $this->download($contentURL, true);
          $this->init($html);
          $this->seek(1, '<input type="hidden" name="content_type_id"');
          $contentTypeID = intval($this->clip(array('value="', '"'), '"'));
          $contentID = intval($this->clip(array('value="', '"'), '"'));
       }
+      
+      if ($contentTypeID == -1)
+         $contentTypeID = 17;
+      if ($contentID == -1)
+         $contentID = 17;
       
       # Hack to fix a bizarre issue where a parsing error is returned when the
       # post starts with an '@' symbol.
@@ -105,19 +110,19 @@ class ChattyParser extends Parser
       #
       # Story text
       #
-      # <div id="main">
+      # <div id="main"> 
       # <div class="content">
       # <div class="content-inner">
       # <div class="main-col">
       # <div class="article">
-      # <h1>Working for the weekend<h1>
-      # <span class="author">by Xav de Matos, Jul 09, 2014 11:49pm PDT</span>
-      # <div class="article-body">...</div>
+      # <h1>Working for the weekend<h1> 
+      # <span class="author">by Xav de Matos, Jul 09, 2014 11:49pm PDT</span> 
+      # <div class="article-body">...</div> 
       # </div>
       $this->seek(1, '<div class="article">');
       $o['story_id'] = 0;
       $o['story_name'] = $this->clip(
-         array('<h1>', '>'),
+         array('<h1>', '>'), 
          '</h1>');
       $o['story_author'] = $this->clip(
          array('<span class="author">', '>By ', ' '),
@@ -128,7 +133,7 @@ class ChattyParser extends Parser
       $o['story_text'] = trim($this->clip(
          array('<div class="article-body">', '>'),
          "\t</div>"));
-
+      
       #
       # Page navigation (current page)
       #
