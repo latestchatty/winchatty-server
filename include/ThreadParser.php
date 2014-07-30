@@ -50,6 +50,11 @@ class ThreadParser extends Parser
       $url      = "http://shacknews.com/frame_laryn.x?root=$threadID";
       $html     = $this->download($url, true);
 
+      if (strpos($html, '</html>') == false)
+      {
+         throw new Exception('Shacknews thread bodies HTML ended prematurely.');
+      }
+
       $this->init($html);
 
       $o = array( # Output
@@ -111,6 +116,11 @@ class ThreadParser extends Parser
       $threadID = intval($threadID);
       $url      = "http://shacknews.com/chatty?id=$threadID";
       $html     = $this->download($url);
+
+      if (strpos($html, '</html>') == false)
+      {
+         throw new Exception('Shacknews thread tree HTML ended prematurely.');
+      }
 
       if (strpos($html, '<p class="be_first_to_comment">') !== false)
       {
