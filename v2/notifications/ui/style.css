@@ -1,0 +1,9 @@
+body { font-family: 'Helvetica Neue', 'Segoe UI', 'Lucida Grande', 'Tahoma', sans-serif; width: 380px; margin: 0 auto; 
+   background: #404040; color: white; font-size: 12pt; }
+input { padding: 5px; font-size: 12pt; }
+input.button { padding-left: 15px; padding-right: 15px; }
+input.text { width: 250px; }
+select { width: 264px; padding: 5px; font-size: 12pt; }
+h1 { font-style: italic; }
+h2 { margin-top: 30px; margin-bottom: 0px; }
+p { margin-top: 10px; margin-bottom: 10px; }
