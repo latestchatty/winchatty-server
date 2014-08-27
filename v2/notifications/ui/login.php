@@ -55,13 +55,9 @@ if (isset($_POST['action']))
       }
       
       $_SESSION['username'] = strtolower($username);
+      header('Location: https://winchatty.com/v2/notifications/ui/configure');
+      die();
    }
-}
-
-if (isset($_SESSION['username']))
-{
-   header('Location: https://winchatty.com/v2/notifications/ui/configure');
-   die();
 }
 ?>
 <!DOCTYPE html>
