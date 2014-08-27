@@ -17,6 +17,8 @@
 function nsc_initJsonGet()
 {
    nsc_jsonHeader();
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
    nsc_assertGet();
    return nsc_connectToDatabase();
 }
@@ -25,6 +27,8 @@ function nsc_initJsonGet()
 function nsc_initJsonPost()
 {
    nsc_jsonHeader();
+   header("Cache-Control: no-cache, must-revalidate");
+   header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
    nsc_assertPost();
    return nsc_connectToDatabase();
 }
