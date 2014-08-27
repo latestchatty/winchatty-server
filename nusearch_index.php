@@ -751,6 +751,8 @@ function getThread($id, $useCache = true) # thread object
 {
    global $cachedThreads;
 
+   $useCache = false; # cache seems to be misbehaving. disable for now.
+
    $thread = false;
 
    if ($useCache && isset($cachedThreads[strval($id)]))
@@ -761,11 +763,12 @@ function getThread($id, $useCache = true) # thread object
    {
       usleep(DELAY_USEC);
       $thread = ThreadParser()->getThread($id);
+
       foreach ($thread['replies'] as $reply)
          $cachedThreads[strval($reply['id'])] = $thread;
    }
-   $threadReplies = $thread['replies'];
 
+   $threadReplies = $thread['replies'];
    $threadID = $thread['id'];
 
    foreach ($threadReplies as $replyIndex => $reply)
