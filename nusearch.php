@@ -128,23 +128,15 @@ $load = trim($loadArray[1]);
       <? if ($model['home']) { ?>
 
       <div id="intro">
-         Friends,<br>
-         <br>
-         <b>WinChatty NuSearch</b> is a search engine for the Shacknews comments.  It uses its own comments database, 
-         and thus it is impervious to Shacknews search outages.  It improves on the years-old WinChatty Search and
-         introduces support for the current iteration of the Shacknews website.
+         @electroly's sweet links:
          <ul>
-            <li>New comments are indexed every five seconds.</li>
-            <li>Multi-term searches work properly (logical AND).</li>
-            <li>Future applications and APIs will be enabled by this database.  
-               <a class="link" href="/v2/readme">Preview the next-generation WinChatty "v2" API currently in development</a>.</li>
+            <li><a class="link" href="/search">Old Shacknews-based comment search</a> (use this if NuSearch is too slow)</li>
+            <li><a class="link" href="https://github.com/electroly/winchatty-server">WinChatty on GitHub</a></li>
+            <li><a class="link" href="http://shackwiki.com/wiki/Lamp#Full_Installer">Install the Lamp desktop client</a> 
+               (recommended)</li>
+            <li><a class="link" href="//s3.amazonaws.com/winchatty/WinChatty-3.1.air">Install the WinChatty desktop 
+               client</a> (obsolete; requires <a class="link" href="http://get.adobe.com/air">Adobe AIR</a>)</li>
          </ul>
-         Love,<br>
-         @electroly<br>
-         <br>
-         P.S. The Shacknews-based search engine is <a class="link" href="/search">still available if needed</a>.<br>
-         P.P.S. Install the <a class="link" href="//s3.amazonaws.com/winchatty/WinChatty-3.1.air">WinChatty desktop client</a> 
-         for a rich chatty experience.  <a class="link" href="http://get.adobe.com/air">Adobe AIR</a> required.<br>
          <br>
          <table id="stats">
             <tr>
