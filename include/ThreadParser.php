@@ -15,6 +15,10 @@
 
 class ThreadParser extends Parser
 {
+   # The HTML from the last getThreadTree and getThreadBodies calls, for debugging.
+   public static $threadTreeHtml = '';
+   public static $threadBodiesHtml = '';
+
    public function getThread($threadID)
    {
       # $threadID might be a reply ID instead of a root thread ID.
@@ -47,8 +51,10 @@ class ThreadParser extends Parser
    public function getThreadBodies($threadID)
    {
       $threadID = intval($threadID);
-      $url      = "http://shacknews.com/frame_laryn.x?root=$threadID";
+      $url      = "http://www.shacknews.com/frame_laryn.x?root=$threadID";
       $html     = $this->download($url, true);
+
+      self::$threadBodiesHtml = $html;
 
       if (strpos($html, '</html>') === false)
       {
@@ -114,8 +120,10 @@ class ThreadParser extends Parser
    public function getThreadTree($threadID)
    {
       $threadID = intval($threadID);
-      $url      = "http://shacknews.com/chatty?id=$threadID";
+      $url      = "http://www.shacknews.com/chatty?id=$threadID";
       $html     = $this->download($url);
+
+      self::$threadTreeHtml = $html;
 
       if (strpos($html, '</html>') === false)
       {
@@ -292,12 +300,7 @@ class ThreadParser extends Parser
       return $thread;
    }
 
-   public static function getContentId($postId)
-   {
-      
-   }
-   
-   private static function previewFromBody($body)
+   public static function previewFromBody($body)
    {
       $preview = self::removeSpoilers($body, false);
       $preview = self::strReplaceAll("<br />", " ", $preview);
@@ -317,7 +320,7 @@ class ThreadParser extends Parser
       return $haystack;
    }
    
-   private static function removeSpoilers($text, $isReply = true)
+   public static function removeSpoilers($text, $isReply = true)
    {
       $spoilerSpan    = null;
       
