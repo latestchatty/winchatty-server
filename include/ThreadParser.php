@@ -200,7 +200,7 @@ class ThreadParser extends Parser
       # Read the rest of the replies in this thread.
       $depth = 0;
       $last_reply_id = intval($thread['id']);
-      $next_thread = $p->peek(1, '<div class="fullpost');
+      $next_thread = $p->peek(1, '<div class="fullpost op');
       if ($next_thread === false)
          $next_thread = $p->len;
       
