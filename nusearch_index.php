@@ -751,8 +751,6 @@ function getThread($id, $useCache = true) # thread object
 {
    global $cachedThreads;
 
-   $useCache = false; # cache seems to be misbehaving. disable for now.
-
    $thread = false;
 
    if ($useCache && isset($cachedThreads[strval($id)]))
