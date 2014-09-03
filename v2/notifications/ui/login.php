@@ -49,9 +49,8 @@ if (isset($_POST['action']))
       {
          $clientUser = nsc_selectValueOrFalse($pg, 'SELECT username FROM notify_client WHERE id = $1', array($clientId));
          if ($clientUser === false)
-            die('Invalid clent ID.');
-         if (is_null($isClientUser) || empty($isClientUser))
-            nsc_execute($pg, 'UPDATE notify_client SET username = $1 WHERE id = $2', array($username, $clientId));
+            die('Invalid client ID.');
+         nsc_execute($pg, 'UPDATE notify_client SET username = $1 WHERE id = $2', array($username, $clientId));
       }
       
       $_SESSION['username'] = strtolower($username);

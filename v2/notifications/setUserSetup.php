@@ -15,9 +15,24 @@
 
 require_once '../../include/Global.php';
 $pg = nsc_initJsonPost();
-$clientId = nsc_postArg('id', 'STR');
-$clientName = nsc_postArg('name', 'STR');
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
+$triggerOnReply = nsc_postArg('triggerOnReply', 'BIT');
+$triggerOnMention = nsc_postArg('triggerOnMention', 'BIT');
+$triggerKeywords = nsc_postArg('triggerKeywords', 'STR*', array());
 
-nfy_registerClientId($pg, $clientId, $clientName);
+nsc_checkLogin($username, $password);
+$username = strtolower($username);
+
+nsc_execute($pg, 'BEGIN');
+nsc_execute($pg, 'UPDATE notify_user SET match_replies = $1, match_mentions = $2 WHERE username = $3',
+   array($triggerOnReply, $triggerOnMention, $username));
+nsc_execute($pg, 'DELETE FROM notify_user_keyword WHERE username = $1', array($username));
+foreach ($triggerKeywords as $keyword)
+{
+   nsc_execute($pg, 'INSERT INTO notify_user_keyword (username, keyword) VALUES ($1, $2)',
+      array($username, $keyword));
+}
+nsc_execute($pg, 'COMMIT');
 
 echo json_encode(array('result' => 'success'));

@@ -15,36 +15,20 @@
 
 require_once '../../include/Global.php';
 $pg = nsc_initJsonPost();
-$clientId = nsc_postArg('clientId', 'STR');
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
 
-nfy_checkClientId($pg, $clientId, true);
+nsc_checkLogin($username, $password);
 
-$startTime = time();
-$endTime = $startTime + 600; # 10 minutes
-$messages = false;
+$rs = nsc_query($pg, 'SELECT match_replies, match_mentions FROM notify_user WHERE username = $1', array($username));
+$row = $rs[0];
+$matchReplies = $row[0] == 't';
+$matchMentions = $row[1] == 't';
 
-while (time() < $endTime)
-{
-   $messages = nsc_query($pg, 
-      'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
-      array($clientId));
-      
-   if (empty($messages))
-      sleep(2);
-   else
-      break;
-}
+$keywords = nsc_selectArray($pg, 'SELECT keyword FROM notify_user_keyword WHERE username = $1', array($username));
 
-$messageObjs = array();
-foreach ($messages as $message)
-{
-   $messageObjs[] = array(
-      'subject' => strval($message[0]),
-      'body' => strval($message[1]),
-      'postId' => intval($message[2]),
-      'threadId' => intval($message[3]));
-}
+echo json_encode(array(
+   'triggerOnReply' => $matchReplies,
+   'triggerOnMention' => $matchMentions,
+   'triggerKeywords' => $keywords));
 
-nsc_execute($pg, 'DELETE FROM notify_client_queue WHERE client_id = $1', array($clientId));
-
-echo json_encode(array('messages' => $messageObjs));

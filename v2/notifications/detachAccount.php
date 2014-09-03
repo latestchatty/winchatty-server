@@ -16,35 +16,20 @@
 require_once '../../include/Global.php';
 $pg = nsc_initJsonPost();
 $clientId = nsc_postArg('clientId', 'STR');
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
 
-nfy_checkClientId($pg, $clientId, true);
+nsc_checkLogin($username, $password);
+$username = strtolower($username);
+nfy_checkClientId($pg, $clientId);
 
-$startTime = time();
-$endTime = $startTime + 600; # 10 minutes
-$messages = false;
-
-while (time() < $endTime)
+try
 {
-   $messages = nsc_query($pg, 
-      'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
-      array($clientId));
-      
-   if (empty($messages))
-      sleep(2);
-   else
-      break;
+   nfy_detachAccount($pg, $clientId, $username);
+}
+catch (Exception $ex)
+{
+   nsc_handleException($ex);
 }
 
-$messageObjs = array();
-foreach ($messages as $message)
-{
-   $messageObjs[] = array(
-      'subject' => strval($message[0]),
-      'body' => strval($message[1]),
-      'postId' => intval($message[2]),
-      'threadId' => intval($message[3]));
-}
-
-nsc_execute($pg, 'DELETE FROM notify_client_queue WHERE client_id = $1', array($clientId));
-
-echo json_encode(array('messages' => $messageObjs));
+echo json_encode(array('result' => 'success'));

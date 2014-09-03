@@ -1246,3 +1246,75 @@ function nsc_shackApiFlagIntToString($sFlag)
       default: throw new Exception('Unexpected category integer.');
    }
 }
+
+function nsc_checkLogin($username, $password)
+{
+   try
+   {
+      ChattyParser()->isModerator($username, $password);
+   }
+   catch (Exception $ex)
+   {
+      nsc_die('ERR_INVALID_LOGIN', 'Invalid username or password.');
+   }
+}
+
+function nfy_registerClientId($pg, $clientId, $clientName)
+{
+   $existingClientId = nsc_selectValueOrFalse($pg, 'SELECT id FROM notify_client WHERE id = $1', array($clientId));
+   if ($existingClientId === false)
+   {
+      nsc_execute($pg, 'INSERT INTO notify_client (id, app, name) VALUES ($1, $2, $3)', 
+         array($clientId, 0, $clientName));
+   }
+}
+
+function nfy_attachAccount($pg, $username, $clientId)
+{
+   if (nsc_selectValueOrFalse($pg, 'SELECT username FROM notify_user WHERE username = $1', array($username)) === false)
+   {
+      nsc_execute($pg, 'INSERT INTO notify_user (username, match_replies, match_mentions) VALUES ($1, false, false)', 
+         array($username));
+   }
+
+   nsc_execute($pg, 'UPDATE notify_client SET username = $1 WHERE id = $2', array($username, $clientId));
+}
+
+function nfy_checkClientId($pg, $clientId, $mustHaveUsername = false)
+{
+   $clients = nsc_query($pg, 'SELECT id, username FROM notify_client WHERE id = $1', array($clientId));
+   if (empty($clients))
+      nsc_die('ERR_UNKNOWN_CLIENT_ID', 'Unknown client ID.');
+   $client = $clients[0];
+   if ($mustHaveUsername && (is_null($client[1]) || empty($client[1])))
+      nsc_die('ERR_CLIENT_NOT_ASSOCIATED', 'Client is not associated with a Shacknews account.');
+}
+
+// Queues a notification and returns the number of clients that it was sent to.
+function nfy_sendNotification($pg, $username, $subject, $body, $postId)
+{
+   // Don't send someone a notification about their own post.
+   if ($username == $subject)
+      return 0;
+   
+   $threadId = -1;
+
+   if ($postId >= 0)
+      $threadId = intval(nsc_selectValue($pg, 'SELECT thread_id FROM post WHERE id = $1', array($postId)));
+
+   $rs = nsc_query($pg, 'SELECT id FROM notify_client WHERE username = $1', array(strtolower($username)));
+   foreach ($rs as $row)
+   {
+      $clientId = strval($row[0]);
+      nsc_execute($pg, 'INSERT INTO notify_client_queue (client_id, subject, body, post_id, thread_id, expiration) ' .
+         'VALUES ($1, $2, $3, $4, $5, ' . "NOW() + interval '5 minutes')", 
+         array($clientId, $subject, $body, $postId, $threadId));
+   }
+   
+   return count($rs);
+}
+
+function nfy_detachAccount($pg, $clientId, $username)
+{
+   nsc_execute($pg, 'DELETE FROM notify_client WHERE username = $1 AND id = $2', array($username, $clientId));
+}

@@ -1,4 +1,4 @@
-<?
+<!--
 # WinChatty Server
 # Copyright (C) 2013 Brian Luft
 # 
@@ -12,12 +12,13 @@
 # 
 # You should have received a copy of the GNU General Public License along with this program; if not, write to the Free 
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-require_once '../../include/Global.php';
-$pg = nsc_initJsonPost();
-$clientId = nsc_postArg('id', 'STR');
-$clientName = nsc_postArg('name', 'STR');
-
-nfy_registerClientId($pg, $clientId, $clientName);
-
-echo json_encode(array('result' => 'success'));
+-->
+<html>
+<body>
+   <form method="POST" action="https://winchatty.com/v2/notifications/getUserSetup">
+      username=<input name="username"><br>
+      password=<input name="password"><br>
+      <input type="submit">
+   </form>
+</body>
+</html>

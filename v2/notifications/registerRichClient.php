@@ -15,36 +15,18 @@
 
 require_once '../../include/Global.php';
 $pg = nsc_initJsonPost();
-$clientId = nsc_postArg('clientId', 'STR');
+$clientId = nsc_postArg('id', 'STR');
+$clientName = nsc_postArg('name', 'STR');
+$username = nsc_postArg('username', 'STR');
+$password = nsc_postArg('password', 'STR');
+$appleDeviceToken = nsc_postArg('appleDeviceToken', 'STR?');
 
-nfy_checkClientId($pg, $clientId, true);
+if (!empty($appleDeviceToken))
+   nsc_die('ERR_SERVER', 'Not implemented yet.');
 
-$startTime = time();
-$endTime = $startTime + 600; # 10 minutes
-$messages = false;
+nsc_checkLogin($username, $password);
+$username = strtolower($username);
+nfy_registerClientId($pg, $clientId, $clientName);
+nfy_attachAccount($pg, $username, $clientId);
 
-while (time() < $endTime)
-{
-   $messages = nsc_query($pg, 
-      'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
-      array($clientId));
-      
-   if (empty($messages))
-      sleep(2);
-   else
-      break;
-}
-
-$messageObjs = array();
-foreach ($messages as $message)
-{
-   $messageObjs[] = array(
-      'subject' => strval($message[0]),
-      'body' => strval($message[1]),
-      'postId' => intval($message[2]),
-      'threadId' => intval($message[3]));
-}
-
-nsc_execute($pg, 'DELETE FROM notify_client_queue WHERE client_id = $1', array($clientId));
-
-echo json_encode(array('messages' => $messageObjs));
+echo json_encode(array('result' => 'success'));

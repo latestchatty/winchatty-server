@@ -96,23 +96,7 @@ function deleteExpiredNotifications($pg)
 
 function sendNotification($pg, $username, $subject, $body, $postId)
 {
-   // Don't send someone a notification about their own post.
-   if ($username == $subject)
-      return;
-   
-   $threadId = intval(nsc_selectValue($pg, 'SELECT thread_id FROM post WHERE id = $1', array($postId)));
-
-   //TODO: do something different for iOS
-   $rs = nsc_query($pg, 'SELECT id FROM notify_client WHERE username = $1', array(strtolower($username)));
-   foreach ($rs as $row)
-   {
-      $clientId = strval($row[0]);
-      nsc_execute($pg, 'INSERT INTO notify_client_queue (client_id, subject, body, post_id, thread_id, expiration) ' .
-         'VALUES ($1, $2, $3, $4, $5, ' . "NOW() + interval '5 minutes')", 
-         array($clientId, $subject, $body, $postId, $threadId));
-   }
-   
-   $count = count($rs);
+   $count = nfy_sendNotification($pg, $username, $subject, $body, $postId);
    debugLog("Sent notification to \"$username\" ($count clients):\n$subject\n$body\nPost #$postId");
 }
 
