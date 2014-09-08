@@ -131,7 +131,7 @@ $load = trim($loadArray[1]);
          @electroly's sweet links:
          <ul>
             <li><span style="color: red; font-weight: bold;">NEW!</span> <a class="link" href="/notifications">Install WinChatty Notifier</a>
-               (push notifications for Window)</li>
+               (push notifications for Windows)</li>
             <li><a class="link" href="/search">Old Shacknews-based comment search</a> (use this if NuSearch is too slow)</li>
             <li><a class="link" href="https://github.com/electroly/winchatty-server">WinChatty on GitHub</a></li>
             <li><a class="link" href="http://shackwiki.com/wiki/Lamp#Full_Installer">Install the Lamp desktop client</a> 
