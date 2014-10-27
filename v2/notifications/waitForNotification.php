@@ -30,12 +30,10 @@ while (time() < $endTime)
    $messages = nsc_query($pg,
       'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
       array($clientId));
+   pg_close($pg);
 
    if (empty($messages))
-   {
-      pg_close($pg);
       sleep(2);
-   }
    else
       break;
 }
@@ -50,6 +48,7 @@ foreach ($messages as $message)
       'threadId' => intval($message[3]));
 }
 
+$pg = nsc_connectToDatabase();
 nsc_execute($pg, 'DELETE FROM notify_client_queue WHERE client_id = $1', array($clientId));
 
 echo json_encode(array('messages' => $messageObjs));
