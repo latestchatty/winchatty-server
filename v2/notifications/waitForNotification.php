@@ -18,6 +18,7 @@ $pg = nsc_initJsonPost();
 $clientId = nsc_postArg('clientId', 'STR');
 
 nfy_checkClientId($pg, $clientId, true);
+pg_close($pg);
 
 $startTime = time();
 $endTime = $startTime + 600; # 10 minutes
@@ -25,12 +26,16 @@ $messages = false;
 
 while (time() < $endTime)
 {
-   $messages = nsc_query($pg, 
+   $pg = nsc_connectToDatabase();
+   $messages = nsc_query($pg,
       'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
       array($clientId));
-      
+
    if (empty($messages))
+   {
+      pg_close($pg);
       sleep(2);
+   }
    else
       break;
 }
