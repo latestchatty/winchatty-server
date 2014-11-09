@@ -19,35 +19,35 @@ class ArticleParser extends Parser
    {
       $storyID = intval($storyID);
       $this->init($this->download("http://www.shacknews.com/article/$storyID"));
-      return $this->parseArticle($this);
+      return $this->parseArticle($this, $storyID);
    }
 
-   public function parseArticle(&$p)
+   public function parseArticle(&$p, $storyID)
    {
       $story = array(
          'preview'       => false,
          'name'          => false,
          'body'          => false,
          'date'          => false,
-         'comment_count' => false,
-         'id'            => false,
+         'comment_count' => 0, // comment count no longer shown on this page
+         'id'            => intval($storyID),
          'thread_id'     => false);
 
-      $p->seek(1, '<div id="main">');
-
-      $story['name'] = $p->clip(array('<h1>', '>'), '<');
-      $story['date'] = nsc_v1_date(strtotime($p->clip(array('<span class="author">', 'By ', ', ', ' '), '</')));
-      $body = $p->clip(array('>'), '<p><a href="#comments">');
-      $story['body'] = str_replace('src="//', 'src="http://', $body);
-      $story['preview'] = nsc_previewFromBody($story['body']);
-      $story['comment_count'] = 0;
-
-      $p->seek(1, '<div class="threads">');
-      $story['thread_id'] = intval($p->clip(array('<div id="root_', '_'), '"'));
-
-      $p->seek(1, '<input type="hidden" name="content_type_id" id="content_type_id" value="2" />');
-      $story['id'] = intval($p->clip(array('<input type="hidden" value="', 'value', '"'), '"'));
-
+      $p->seek(1, '<div id="main-content">');
+      $story['name'] = trim(html_entity_decode(strval(
+         $p->clip(array('<h1 class="title">', '>'), '</h1>'))));
+      $p->seek(1, '<div class="date');
+      $day = intval($p->clip(array('<div class="day">', '>'), '</div>'));
+      $month = trim(strval($p->clip(array('<li>', '>'), '</li>')));
+      $year = intval($p->clip(array('<li>', '>'), '</li>'));
+      $time = trim(strval($p->clip(array('<li class="time">', '>'), '</li>')));
+      $story['date'] = nsc_v1_date(strtotime("$month $day $year $time PST"));
+      $story['thread_id'] = intval($p->clip(array('<a class="chatty" href="/chatty?id=', 'id=', '='), '"'));
+      $story['preview'] = trim(html_entity_decode(strval(
+         $p->clip(array('<p class="blurb">', '>'), '</p>'))));
+      $story['body'] = trim(html_entity_decode(strval(
+         $p->clip(array('<article class="post">', '>'), '</article>'))));
+   
       return $story;
    }
 }
