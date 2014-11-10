@@ -31,7 +31,7 @@ class ArticleParser extends Parser
          'date'          => false,
          'comment_count' => 0, // comment count no longer shown on this page
          'id'            => intval($storyID),
-         'thread_id'     => false);
+         'thread_id'     => 0);
 
       $p->seek(1, '<div id="main-content">');
       $story['name'] = trim(html_entity_decode(strval(
@@ -42,7 +42,8 @@ class ArticleParser extends Parser
       $year = intval($p->clip(array('<li>', '>'), '</li>'));
       $time = trim(strval($p->clip(array('<li class="time">', '>'), '</li>')));
       $story['date'] = nsc_v1_date(strtotime("$month $day $year $time PST"));
-      $story['thread_id'] = intval($p->clip(array('<a class="chatty" href="/chatty?id=', 'id=', '='), '"'));
+      if ($p->peek(1, '<a class="chatty" href="/chatty?id='))
+         $story['thread_id'] = intval($p->clip(array('<a class="chatty" href="/chatty?id=', 'id=', '='), '"'));
       $story['preview'] = trim(html_entity_decode(strval(
          $p->clip(array('<p class="blurb">', '>'), '</p>'))));
       $story['body'] = trim(html_entity_decode(strval(
