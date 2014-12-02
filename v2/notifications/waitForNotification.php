@@ -27,11 +27,11 @@ $messages = false;
 while (time() < $endTime)
 {
    $pg = nsc_connectToDatabase();
-   $messages = nsc_query($pg,
+   $messages = nsc_query($pg, 
       'SELECT subject, body, post_id, thread_id FROM notify_client_queue WHERE client_id = $1 ORDER BY id',
       array($clientId));
    pg_close($pg);
-
+      
    if (empty($messages))
       sleep(2);
    else

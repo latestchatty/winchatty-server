@@ -15,15 +15,12 @@
 
 require_once 'Global.php';
 $pg = nsc_initJsonPost();
-$token = nsc_postArg('clientSessionToken', 'STR');
+$username = nsc_postArg('username', 'STR,50');
 $nws = nsc_postArg('nws', 'BIT');
 $stupid = nsc_postArg('stupid', 'BIT');
 $political = nsc_postArg('political', 'BIT');
 $tangent = nsc_postArg('tangent', 'BIT');
 $informative = nsc_postArg('informative', 'BIT');
-
-$session = nsc_getClientSession($pg, $token);
-$username = $session['username'];
 $shackerId = nsc_getShackerId($pg, $username);
 
 nsc_execute($pg,

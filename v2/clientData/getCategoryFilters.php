@@ -14,11 +14,8 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
-$pg = nsc_initJsonPost();
-$token = nsc_postArg('clientSessionToken', 'STR');
-
-$session = nsc_getClientSession($pg, $token);
-$username = $session['username'];
+$pg = nsc_initJsonGet();
+$username = nsc_getArg('username', 'STR,50');
 $shackerId = nsc_getShackerId($pg, $username);
 
 $row = nsc_selectRow($pg, 

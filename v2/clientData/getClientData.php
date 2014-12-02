@@ -1,4 +1,4 @@
-<!--
+<?
 # WinChatty Server
 # Copyright (C) 2013 Brian Luft
 # 
@@ -12,12 +12,18 @@
 # 
 # You should have received a copy of the GNU General Public License along with this program; if not, write to the Free 
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
--->
-<html>
-<body>
-   <form method="POST" action="https://winchatty.com/v2/clientData/getMarkedPosts">
-      clientSessionToken=<input name="clientSessionToken"><br>
-      <input type="submit">
-   </form>
-</body>
-</html>
+
+require_once 'Global.php';
+$pg = nsc_initJsonGet();
+$username = nsc_getArg('username', 'STR,50');
+$client = nsc_getArg('client', 'STR,50');
+$shackerId = nsc_getShackerId($pg, $username);
+
+$data = nsc_selectValueOrFalse($pg, 
+   'SELECT data FROM private_client_data WHERE shacker_id = $1 AND client_code = $2',
+   array($shackerId, $client));
+
+if ($data === false)
+   $data = '';
+
+echo json_encode(array('data' => strval($data)));

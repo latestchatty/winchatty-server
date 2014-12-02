@@ -15,12 +15,9 @@
 
 require_once 'Global.php';
 $pg = nsc_initJsonPost();
-$token = nsc_postArg('clientSessionToken', 'STR');
-$data = nsc_postArg('data', 'STR');
-
-$session = nsc_getClientSession($pg, $token);
-$username = $session['username'];
-$client = $session['client_code'];
+$username = nsc_postArg('username', 'STR,50');
+$client = nsc_postArg('client', 'STR,50');
+$data = nsc_postArg('data', 'STR,100000');
 $shackerId = nsc_getShackerId($pg, $username);
 
 nsc_execute($pg, 'BEGIN', array());

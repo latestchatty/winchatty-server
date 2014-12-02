@@ -15,13 +15,12 @@
 
 require_once 'Global.php';
 $pg = nsc_initJsonPost();
-$token = nsc_postArg('clientSessionToken', 'STR');
+$username = nsc_postArg('username', 'STR,50');
 $postId = nsc_postArg('postId', 'INT');
 $type = nsc_postarg('type', 'MPT');
-
-$session = nsc_getClientSession($pg, $token);
-$username = $session['username'];
 $shackerId = nsc_getShackerId($pg, $username);
+
+nsc_execute($pg, 'BEGIN', array());
 
 # Clear any existing mark.
 nsc_execute($pg, 
@@ -40,5 +39,7 @@ if ($type == 'pinned' || $type == 'collapsed')
       'INSERT INTO shacker_marked_post (shacker_id, post_id, mark_type) VALUES ($1, $2, $3)',
       array($shackerId, $postId, nsc_markTypeStringToInt($type)));
 }
+
+nsc_execute($pg, 'COMMIT', array());
 
 echo json_encode(array('result' => 'success'));
