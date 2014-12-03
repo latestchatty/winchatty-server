@@ -15,6 +15,8 @@
 var express = require('express');
 var fs = require('fs');
 var app = express();
+var httpProxy = require('http-proxy');
+var proxy = httpProxy.createServer();
 
 app.use(require('morgan')('combined'));
 
@@ -127,6 +129,9 @@ app.get('/v2/waitForEvent', (function() {
    }
 
    function go(req, res) {
+      req.connection.setTimeout(11 * 60 * 1000);
+      res.header('Access-Control-Allow-Origin', '*');
+      
       if (!isInt(req.query.lastEventId)) {
          res.send(errorResponse('ERR_ARGUMENT', 'Invalid argument: lastEventId'));
          return;
@@ -156,4 +161,21 @@ app.get('/v2/waitForEvent', (function() {
 
 /***/
 
-app.listen(8080);
+proxy.on('error', function(err, req, res) {
+   console.log('PROXY ERROR: ' + err.message);
+   res.end();
+});
+
+app.use('/', function(req, res) {
+   req.connection.setTimeout(11 * 60 * 1000);
+   proxy.web(req, res, {target: 'http://localhost:81'});
+});
+
+app.listen(80);
+
+// Set up HTTPS
+var httpsOptions = {
+   key: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key'),
+   cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt')
+};
+require('https').createServer(httpsOptions, app).listen(443);
