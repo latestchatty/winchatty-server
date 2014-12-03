@@ -22,4 +22,4 @@ define('search_data_directory',      '/mnt/websites/winchatty.com/data/Search/')
 define('V2_CONNECTION_STRING', 'hostaddr=127.0.0.1 port=6432 dbname=chatty user=nusearch password=nusearch');
 define('V2_DATA_PATH', '/mnt/ssd/ChattyIndex/'); # must have trailing slash. must already exist.
 define('V2_ADMIN_USERNAME', 'electroly'); # this person is allowed to use /v2/broadcastServerMessage
-define('V2_USE_PUSH_SERVER', true); # whether to use the node.js push-server
+define('V2_USE_PUSH_SERVER', false); # whether to use the node.js push-server

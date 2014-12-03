@@ -20,6 +20,7 @@ if (V2_USE_PUSH_SERVER)
    # Redirect to node.js
    nsc_jsonHeader();
    $lastId = nsc_getArg('lastEventId', 'INT');
+   header("HTTP/1.1 301 Moved Permanently");
    header('Location: http://notifications.winchatty.com:8080/v2/waitForEvent?lastEventId=' . $lastId);
    die();
 }
