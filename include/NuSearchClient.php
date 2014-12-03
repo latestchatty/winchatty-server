@@ -841,6 +841,9 @@ function nsc_logEvent($pg, $type, $data)
    file_put_contents(V2_DATA_PATH . 'LastEvents2', serialize($events));
    rename(V2_DATA_PATH . 'LastEvents2', V2_DATA_PATH . 'LastEvents');
 
+   file_put_contents(V2_DATA_PATH . 'LastEvents2.json', json_encode($events));
+   rename(V2_DATA_PATH . 'LastEvents2.json', V2_DATA_PATH . 'LastEvents.json');
+
    file_put_contents(V2_DATA_PATH . 'LastEventID2', intval($newestId));
    rename(V2_DATA_PATH . 'LastEventID2', V2_DATA_PATH . 'LastEventID');
 }

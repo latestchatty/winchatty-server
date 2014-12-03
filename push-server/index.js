@@ -1,0 +1,159 @@
+// WinChatty Server
+// Copyright (C) 2014 Brian Luft
+// 
+// This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public 
+// License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later 
+// version.
+// 
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+// details.
+// 
+// You should have received a copy of the GNU General Public License along with this program; if not, write to the Free 
+// Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+var express = require('express');
+var fs = require('fs');
+var app = express();
+
+app.use(require('morgan')('combined'));
+
+var TIMEOUT_MSEC = 10 * 60 * 1000;
+var PRUNE_INTERVAL_MSEC = 1000;
+var EVENT_ID_FILE_PATH = '/mnt/ssd/ChattyIndex/LastEventID';
+var EVENTS_FILE_PATH = '/mnt/ssd/ChattyIndex/LastEvents.json';
+
+function isInt(value) {
+   if (isNaN(value)) {
+      return false;
+   }
+   var x = parseFloat(value);
+   return (x | 0) === x;
+}
+
+function errorResponse(code, message) {
+   return {
+      "error": true,
+      "code": code,
+      "message": message
+   };
+}
+
+app.get('/v2/waitForEvent', (function() {
+   var g_lastEventId = 0;
+   var g_lastEvents = [];
+   var g_waitForEventConnections = [];
+
+   function eventsResponse(lastEventId) {
+      var events = [];
+      for (var i = 0; i < g_lastEvents.length; i++) {
+         if (g_lastEvents[i].eventId > lastEventId) {
+            events.push(g_lastEvents[i]);
+         }
+      }
+      if (events.length == g_lastEvents.length) {
+         return errorResponse('ERR_TOO_MANY_EVENTS', 'Too many events.');
+      } else {
+         return { lastEventId: g_lastEventId, events: events };
+      }
+   }
+
+   function processEventConnections(responseFunc) {
+      for (var i = g_waitForEventConnections.length - 1; i >= 0; i--) {
+         var connection = g_waitForEventConnections[i];
+         var response = responseFunc(connection);
+         if (response) {
+            connection.res.send(response);
+            g_waitForEventConnections.splice(i, 1);
+         }
+      }
+   }
+
+   function sendEvents() {
+      processEventConnections(function (connection) {
+         if (g_lastEventId > connection.lastEventId) {
+            return eventsResponse(connection.lastEventId);
+         } else {
+            return null;
+         }
+      });
+   }
+
+   function pollEvents() {
+      fs.readFile(EVENT_ID_FILE_PATH, function (eventIdError, eventIdData) {
+         if (eventIdError) {
+            console.log('Error reading event ID file: ' + eventIdError.message);
+            return;
+         }
+
+         var lastEventId = parseInt(eventIdData);
+         if (lastEventId > g_lastEventId) {
+            fs.readFile(EVENTS_FILE_PATH, function (eventsError, eventsData) {
+               if (eventsError) {
+                  console.log('Error reading events file: ' + eventsError.message);
+                  return;
+               }
+
+               try {
+                  g_lastEvents = JSON.parse(eventsData);
+                  g_lastEventId = lastEventId;
+
+                  g_lastEvents.sort(function(a, b) {
+                     return a.eventId - b.eventId;
+                  });
+
+                  console.log('Event ID ' + g_lastEventId);
+
+                  sendEvents();
+               } catch (e) {
+                  console.log('Error parsing events file: ' + e.message);
+                  return;
+               }
+            });
+         }
+      });
+   }
+
+   function pruneEventConnections() {
+      var now = new Date().getTime();
+
+      processEventConnections(function (connection) {
+         if ((now - connection.time) >= TIMEOUT_MSEC) {
+            return eventsResponse(g_lastEventId);
+         } else {
+            return null;
+         }
+      });
+   }
+
+   function go(req, res) {
+      if (!isInt(req.query.lastEventId)) {
+         res.send(errorResponse('ERR_ARGUMENT', 'Invalid argument: lastEventId'));
+         return;
+      }
+
+      var lastEventId = parseInt(req.query.lastEventId);
+
+      if (lastEventId < g_lastEventId) {
+         // There are already newer events, no need to wait.
+         res.send(eventsResponse(lastEventId));
+         return;
+      }
+
+      // Hang on until there's an event to send.
+      g_waitForEventConnections.push({
+         res: res,
+         lastEventId: lastEventId,
+         time: new Date().getTime()
+      });
+   }
+
+   pollEvents();
+   fs.watchFile(EVENT_ID_FILE_PATH, { persist: true, interval: 500 }, function (a,b) { pollEvents(); });
+   setInterval(pruneEventConnections, PRUNE_INTERVAL_MSEC);
+   return go;
+})());
+
+/***/
+
+app.listen(8080);

@@ -14,6 +14,16 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once 'Global.php';
+
+if (V2_USE_PUSH_SERVER)
+{
+   # Redirect to node.js
+   nsc_jsonHeader();
+   $lastId = nsc_getArg('lastEventId', 'INT');
+   header('Location: http://notifications.winchatty.com:8080/v2/waitForEvent?lastEventId=' . $lastId);
+   die();
+}
+
 nsc_jsonHeader();
 nsc_assertGet();
 $filePath = V2_DATA_PATH . 'LastEventID';
