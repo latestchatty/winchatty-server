@@ -176,6 +176,7 @@ app.listen(80);
 // Set up HTTPS
 var httpsOptions = {
    key: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key'),
-   cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt')
+   cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt'),
+   ca: [ fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt') ]
 };
 require('https').createServer(httpsOptions, app).listen(443);
