@@ -320,8 +320,6 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
    $numRetries = 0;
    $weekendConfirmed = false;
 
-   #$useShackApi = false;
-
    do 
    {
       $nuked = false;
@@ -333,10 +331,6 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
       try
       {
          $thread = false;
-         #if ($useShackApi)
-            #$thread = getThread2($id, !$force); # throws exception on failure
-         #else
-            #$thread = getThread($id, !$force); # throws exception on failure
          $thread = getThread($id, !$force); # throws exception on failure
          $postWasFound = indexThread($pg, $id, $thread);
 
@@ -371,7 +365,7 @@ function tryIndexPost($pg, $id, $ignoreNuke, $force = false) # bool
          $error = $e->getMessage();
       }
 
-      if (/*!$useShackApi &&*/ $nuked && $numRetries < 2 && $ignoreNuke)
+      if ($nuked && $numRetries < 2 && $ignoreNuke)
       {
          echo "Retrying stalled post $id\n";
          sleep(5);
@@ -704,46 +698,6 @@ function flagStringToInt($flag)
       default:            return 1;
    }
 }
-
-/*
-function shackApiGetThread($id)
-{
-   $result = nsc_shackApiGetThread($id);
-
-   if ($result['exists'] == false)
-      throw new Exception('future');
-   else if ($result['visible'] == false)
-      throw new Exception('nuked');
-   else
-   {
-      for ($i = 0; $i < count($result['posts']); $i++)
-         $result['posts'][$i]['category'] = flagStringToInt($result['posts'][$i]['category']);
-      $threadId = $result['posts'][0]['id'];
-      return array('id' => $threadId, 'replies' => $result['posts']);
-   }
-}
-
-function getThread2($id, $useCache = true) # thread object
-{
-   global $cachedThreads;
-
-   $thread = false;
-
-   if ($useCache && isset($cachedThreads[strval($id)]))
-   {
-      $thread = $cachedThreads[strval($id)];
-   }
-   else
-   {
-      usleep(DELAY_USEC);
-      $thread = shackApiGetThread($id);
-      foreach ($thread['replies'] as $reply)
-         $cachedThreads[strval($reply['id'])] = $thread;
-   }
-
-   return $thread;
-}
-*/
 
 function getThread($id, $useCache = true) # thread object
 {
