@@ -25,6 +25,14 @@ CREATE TABLE post (
    body_c      TEXT        NOT NULL
 );
 
+CREATE TABLE post_lols (
+   post_id INTEGER NOT NULL,
+   tag TEXT NOT NULL,
+   count INTEGER NOT NULL,
+   PRIMARY KEY (post_id, tag)
+);
+CREATE INDEX idx_post_lols_post_id ON post_lols (post_id);
+
 CREATE TABLE post_index (
    id          INTEGER     NOT NULL REFERENCES post ON DELETE CASCADE,
    body_c_ts   tsvector    NOT NULL,
@@ -108,40 +116,4 @@ Moderation flag values
 5 TANGENT,
 6 INFORMATIVE
 7 NUKED
-
-
---------------------------------------------------------------------
-
-[post]
-pid: 12340
-thr: 12340
-par: 0
-aut: electroly
-mod: stupid
-dat: 2013-12-23T...
-txt: Hello there blah blah blah blah blah blah 
-[post]
-pid: 12347
-thr: 12340
-par: 12340
-aut: electroly
-mod: tangent
-dat: 2013-12-23T...
-txt: Hello there blah blah blah blah blah blah 
-[nuked_post]
-pid: 12346
-ret: 0
-lst: 2013-12-23T...
-err: Blah blah blah blah..
-
-
-
-ConsFile format
-# Encoding as base223:
-# "AAAABBBBB\n"
-#  1 cons pair (10 bytes) per line
-#  data: up to 78 million
-#  next: up to 7 billion
-#
-# First cons pair has 0 for the data and a pointer to the next free (currently unused) line
 

@@ -21,6 +21,7 @@ if (php_sapi_name() !== 'cli')
 define('MAX_NUKED_RETRIES',     10);
 define('TOTAL_TIME_SEC',        300);
 define('RETRY_INTERVAL_SEC',    35);
+define('LOL_INTERVAL_SEC',      60);
 define('NEW_POST_INTERVAL_SEC', 5);
 define('NUKE_SCAN_DELAY_SEC',   26); # Wait N seconds after startup and then run the nuked thread scan
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
@@ -97,7 +98,8 @@ function startIndex() # void
 
       $lastNukeRetry = time() - 10;
       $lastNewPost = 0;
-      $didCheckForNukedThreads = false;      
+      $lastLolUpdate = time() - 50;
+      $didCheckForNukedThreads = false;
 
       while ((time() - $cycleStartTime) < TOTAL_TIME_SEC)
       {
@@ -121,6 +123,12 @@ function startIndex() # void
             commitTransaction($pg);
 
             $lastNukeRetry = time();
+         }
+
+         if ((time() - $lastLolUpdate) >= LOL_INTERVAL_SEC)
+         {
+            updateLolCounts($pg);
+            $lastLolUpdate = time();
          }
 
          $forceReadNewPosts = false;
@@ -832,3 +840,54 @@ function logPostEdit($pg, $id, $categoryInt)
    nsc_logEvent($pg, 'categoryChange', $catc);
 }
 
+function updateLolCounts($pg)
+{
+   echo "Updating LOL counts...\n";
+   $url = 'http://www.lmnopc.com/greasemonkey/shacklol/api.php?special=getcounts';
+   $response = json_decode(file_get_contents($url), true);
+   if (is_null($response))
+   {
+      echo 'Could not decode ShackLOL getcounts response.';
+      return;
+   }
+
+   $updates = array();
+
+   beginTransaction($pg);
+
+   foreach ($response as $threadId => $threadCounts)
+   {
+      foreach ($threadCounts as $postId => $postCounts)
+      {
+         foreach ($postCounts as $tag => $count)
+         {
+            // Sanitize.
+            $threadId = intval($threadId);
+            $postId = intval($postId);
+            $tag = strval($tag);
+            $count = intval($count);
+
+            $oldCount = nsc_selectValueOrFalse($pg, 
+               'SELECT count FROM post_lols WHERE post_id = $1 AND tag = $2',
+               array($postId, $tag));
+            if ($oldCount === false || $oldCount != $count)
+            {
+               nsc_execute($pg, 'DELETE FROM post_lols WHERE post_id = $1 AND tag = $2',
+                  array($postId, $tag));
+               nsc_execute($pg, 'INSERT INTO post_lols (post_id, tag, count) VALUES ($1, $2, $3)',
+                  array($postId, $tag, $count));
+
+               $updates[] = array(
+                  'postId' => $postId,
+                  'tag' => $tag,
+                  'count' => $count
+               );
+            }
+         }
+      }
+   }
+
+   commitTransaction($pg);
+   if (!empty($updates))
+      nsc_logEvent($pg, 'lolCountsUpdate', array('updates' => $updates));
+}

@@ -438,7 +438,37 @@ function nsc_newPostFromRow($row)
       'category' => nsc_flagIntToString($row[4]),
       'date' => nsc_date(strtotime($row[5])),
       'body' => strval($row[6])
+      //NOTE: nsc_infuseLolCounts() must be used to inject the 'lols' field.
    );
+}
+
+function nsc_infuseLolCounts($posts, $lols)
+{
+   # $posts is a list of [POST] objects without the 'lols' field set.
+   # $lols is a list of records (post_id, tag, count) from the post_lols table.
+   $lolsLookup = array();
+   foreach ($lols as $lol)
+   {
+      $postId = intval($lol[0]);
+      $tag = strval($lol[1]);
+      $count = intval($lol[2]);
+      $list = array();
+
+      if (isset($lolsLookup[$postId]))
+         $list = $lolsLookup[$postId];
+
+      $list[] = array('tag' => $tag, 'count' => $count);
+      $lolsLookup[$postId] = $list;
+   }
+   foreach ($posts as &$post)
+   {
+      $postId = intval($post['id']);
+      if (isset($lolsLookup[$postId]))
+         $post['lols'] = $lolsLookup[$postId];
+      else
+         $post['lols'] = array();
+   }
+   return $posts;
 }
 
 function nsc_getPosts($pg, $idList)
@@ -447,7 +477,10 @@ function nsc_getPosts($pg, $idList)
    $rows = nsc_query($pg, 
       "SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id IN ($idListStr)", 
       array());
-   return array_map('nsc_newPostFromRow', $rows);
+   $posts = array_map('nsc_newPostFromRow', $rows);
+   $lols = nsc_query($pg,
+      "SELECT post_id, tag, count FROM post_lols WHERE post_id IN ($idListStr)", array());
+   return nsc_infuseLolCounts($posts, $lols);
 }
 
 function nsc_getThreadId($pg, $postId)
@@ -478,9 +511,13 @@ function nsc_getThread($pg, $id, $possiblyMissing = false, $sort = false)
    $rows = nsc_query($pg, 
       'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE thread_id = $1 ' . $orderBy, 
       array($threadId));
+   $posts = array_map('nsc_newPostFromRow', $rows);
+   $lols = nsc_query($pg,
+      'SELECT l.post_id, l.tag, l.count FROM post p INNER JOIN post_lols l on p.id = l.post_id WHERE p.thread_id = $1', 
+      array($threadId));
    return array(
       'threadId' => $threadId,
-      'posts' => array_map('nsc_newPostFromRow', $rows)
+      'posts' => nsc_infuseLolCounts($posts, $lols)
    );
 }
 
@@ -519,14 +556,21 @@ function nsc_getPostRange($pg, $startId, $count, $reverse = false)
       $rows = nsc_query($pg,
          'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id <= $1 ORDER BY id DESC LIMIT $2',
          array($startId, $count));
+      $lols = nsc_query($pg,
+         'SELECT post_id, tag, count FROM post_lols WHERE post_id <= $1 ORDER BY post_id DESC LIMIT $2', 
+         array($startId, $count));
    }
    else
    {
       $rows = nsc_query($pg,
          'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id >= $1 ORDER BY id LIMIT $2',
          array($startId, $count));
+      $lols = nsc_query($pg,
+         'SELECT post_id, tag, count FROM post_lols WHERE post_id >= $1 ORDER BY post_id LIMIT $2', 
+         array($startId, $count));
    }
-   return array_map('nsc_newPostFromRow', $rows);
+   $posts = array_map('nsc_newPostFromRow', $rows);
+   return nsc_infuseLolCounts($posts, $lols);
 }
 
 $_nsc_stemmer = false;
@@ -700,6 +744,8 @@ function nsc_search($pg, $terms, $author, $parentAuthor, $category, $offset, $li
          'body' => $row[6]
       );
    }
+
+   //TODO: infuse lol counts
    return $results;
 }
 

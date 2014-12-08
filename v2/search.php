@@ -90,7 +90,8 @@ foreach ($postIds as $postId)
          'author' => 'Duke Nuked',
          'category' => 'ontopic',
          'date' => nsc_date(strtotime('1980-01-01 Midnight UTC')),
-         'body' => '<span class="jt_red"><b>* N U K E D *</b></span>'
+         'body' => '<span class="jt_red"><b>* N U K E D *</b></span>',
+         'lols' => array()
       );
 }
 
