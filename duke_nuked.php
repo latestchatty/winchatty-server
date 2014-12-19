@@ -7,6 +7,18 @@ require_once 'include/Global.php';
 $lastMessageIdFilePath = '/mnt/websites/_private/duke_nuked_last_message_id.txt';
 $passwordFilePath = '/mnt/websites/_private/duke_nuked_password.txt';
 $threadIdFilePath = '/mnt/websites/_private/duke_nuked_thread.txt';
+$slackTokenFilePath = '/mnt/websites/_private/slack_token.txt';
+
+function buildQueryString($query)
+{
+   $x = array();
+   foreach ($query as $key => $value)
+   {
+      $x[] = urlencode($key) . '=' . urlencode($value);
+   }
+   return implode('&', $x);
+}
+
 
 $lastMessageId = intval(trim(file_get_contents($lastMessageIdFilePath)));
 $password = trim(file_get_contents($passwordFilePath));
@@ -55,6 +67,23 @@ foreach ($messages as $message)
       echo "$body\n";
       
       ChattyParser()->post('Duke Nuked', $password, $threadId, 0, $body, 99, 99);
+
+      # Also post on Slack.
+      $slackBody =
+         'From: ' . $message['from'] . "\r\n" .
+         'Subject: ' . $message['subject'] . "\r\n" .
+         "\r\n" .
+         strip_tags($message['body']);
+      $slackQueryString = buildQueryString(array(
+         'token' => trim(file_get_contents($slackTokenFilePath)),
+         'channel' => '#duke-nuked',
+         'text' => htmlspecialchars($slackBody, ENT_NOQUOTES),
+         'username' => 'duke nuked',
+         'parse' => 'none',
+         'link_names' => 0));
+      $slackUrl = 'https://slack.com/api/chat.postMessage?' . $slackQueryString;
+      $slackResult = file_get_contents($slackUrl);
+      print_r($slackResult);
    }
 }
 
