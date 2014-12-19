@@ -16,7 +16,7 @@ var express = require('express');
 var fs = require('fs');
 var app = express();
 var httpProxy = require('http-proxy');
-var proxy = httpProxy.createServer();
+var proxy = httpProxy.createServer({ timeout: 660000 });
 
 app.use(require('morgan')('combined'));
 
@@ -129,7 +129,7 @@ app.get('/v2/waitForEvent', (function() {
    }
 
    function go(req, res) {
-      req.connection.setTimeout(11 * 60 * 1000);
+      req.connection.setTimeout(0);
       res.header('Access-Control-Allow-Origin', '*');
       
       if (!isInt(req.query.lastEventId)) {
@@ -167,10 +167,11 @@ proxy.on('error', function(err, req, res) {
 });
 
 app.use('/', function(req, res) {
-   req.connection.setTimeout(11 * 60 * 1000);
+   req.connection.setTimeout(0);
    proxy.web(req, res, {target: 'http://localhost:81'});
 });
 
+app.timeout = 0;
 app.listen(80);
 
 // Set up HTTPS
@@ -179,4 +180,6 @@ var httpsOptions = {
    cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt'),
    ca: [ fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt') ]
 };
-require('https').createServer(httpsOptions, app).listen(443);
+var httpsServer = require('https').createServer(httpsOptions, app);
+httpsServer.timeout = 0;
+httpsServer.listen(443);
