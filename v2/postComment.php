@@ -33,6 +33,8 @@ try
       nsc_die('ERR_POST_RATE_LIMIT', 'Please wait a few minutes before trying to post again.');
    else if (strstr($ret, 'banned') !== false)
       nsc_die('ERR_BANNED', 'You are banned.');
+   else if (strstr($ret, 'Trying to post to a nuked thread') !== false)
+      nsc_die('ERR_NUKED', 'You cannot reply to a nuked thread or subthread.');
    else if (strstr($ret, 'fixup_postbox_parent_for_remove(') === false)
       nsc_die('ERR_SERVER', 'Unexpected response from server: ' . $ret);
 }
