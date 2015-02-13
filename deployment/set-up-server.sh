@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This automated installation script is designed for Ubuntu.  Tested on Ubuntu Server 14.04 LTS 64-bit.
 #
@@ -8,14 +8,14 @@
 #   chatty-2015-02-12.sql.gz  (a complete database snapshot; requires 30GB of disk space)
 #   chatty-sample.sql.gz      (a small subset of posts; requires 1GB of disk space)
 #
-# Restoring the complete database can take several hours.  The sample database only takes a few minutes.
+# Restoring the complete database can take several hours.  The sample database takes only a few minutes.
 #
 # Installation instructions (as root):
 #   USER=(name of the new unix user that will own all site files and processes)
 #   SHACK_USERNAME=(shacknews username)
 #   SHACK_PASSWORD=(shacknews password)
 #   DUMP_FILE=(filename of the sql dump to use, see above)
-#   curl https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh | sh
+#   curl https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh | bash
 #   passwd $USER
 #   reboot
 #
@@ -45,9 +45,10 @@ chmod 744 backend/*.sh
 popd
 
 pushd /home/chatty/backend/include
-sudo -u $USER echo "<?" > ConfigUserPass.php
-sudo -u $USER echo "define('WINCHATTY_USERNAME', '$SHACK_USERNAME');" >> ConfigUserPass.php
-sudo -u $USER echo "define('WINCHATTY_PASSWORD', '$SHACK_PASSWORD');" >> ConfigUserPass.php
+echo "<?" > ConfigUserPass.php
+echo "define('WINCHATTY_USERNAME', '$SHACK_USERNAME');" >> ConfigUserPass.php
+echo "define('WINCHATTY_PASSWORD', '$SHACK_PASSWORD');" >> ConfigUserPass.php
+chown $USER:www-data ConfigUserPass.php
 popd
 
 pushd /home/chatty/backend/push-server
@@ -76,4 +77,4 @@ popd
 
 sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
 sudo -u postgres createdb -E UTF8 -O nusearch chatty
-curl http://s3.amazonaws.com/winchatty/$DUMPFILE | gunzip -c | sudo -u postgres psql chatty
+curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -u postgres psql chatty
