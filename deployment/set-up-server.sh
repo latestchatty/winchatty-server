@@ -30,7 +30,6 @@ if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
 if [ -z "$SHACK_PASSWORD" ]; then echo "Missing SHACK_PASSWORD."; exit 1; fi
 if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
 
-set -e
 set -x
 
 apt-get update
