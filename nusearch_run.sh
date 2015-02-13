@@ -1,14 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-clear
-echo ================================================================================
+LOG_FILE=/tmp/winchatty-indexer.log
 
 while true
 do
-   time php5 nusearch_index.php
-   echo
-   echo -n "Finished at "
-   date
-   echo ================================================================================
+   echo Started at `date` >> $LOG_FILE
+   php5 nusearch_index.php | tee -a $LOG_FILE
    sleep 5
 done

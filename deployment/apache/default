@@ -1,0 +1,81 @@
+<VirtualHost *:81>
+	ServerAdmin webmaster@localhost
+
+	DocumentRoot /var/www
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+	<Directory /var/www/>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+<VirtualHost *:81>
+        SetOutputFilter DEFLATE
+
+        ServerName winchatty.com
+        ServerAlias winchatty.com *.winchatty.com
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /mnt/websites/winchatty.com/
+        <Directory />
+                Options FollowSymLinks MultiViews
+                AllowOverride None
+        </Directory>
+        <Directory /mnt/websites/winchatty.com/>
+                Options FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        <Directory /mnt/websites/winchatty.com/data/>
+                deny from all
+        </Directory>
+        <Directory /mnt/websites/winchatty.com/include/>
+                deny from all
+        </Directory>
+        <Directory /mnt/websites/winchatty.com/service/core/>
+                deny from all
+        </Directory>
+
+        ErrorLog /var/log/apache2/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog /var/log/apache2/access.log combined
+        ServerSignature Off
+
+<IfModule mod_rewrite.c>
+RewriteEngine on
+
+RewriteRule ^/service/gateway[/]*$ /service/gateway.php
+RewriteRule ^/chatty/about$ /classic/about.php
+RewriteRule ^/chatty/index\.json$ /classic/getStory.php
+RewriteRule ^/chatty/([0-9]+)\.json$ /classic/getStory.php?story=$1
+RewriteRule ^/chatty/([0-9]+)\.([0-9]+)\.json$ /classic/getStory.php?story=$1&page=$2
+RewriteRule ^/chatty/thread/([0-9]+)\.json$ /classic/getThread.php?id=$1
+RewriteRule ^/chatty/search\.json$ /classic/search.php
+RewriteRule ^/chatty/stories/([0-9]+)\.json$ /classic/getArticle.php?story=$1
+RewriteRule ^/chatty/stories/([0-9]+)\.([0-9]+)\.json$ /classic/getArticle.php?story=$1&page=$2
+RewriteRule ^/chatty/messages\.json$ /classic/getMessages.php
+RewriteRule ^/chatty/messages/([0-9]+)\.json$ /classic/markMessageRead.php?id=$1
+RewriteRule ^/chatty/messages/send/$ /classic/sendMessage.php
+RewriteRule ^/chatty/post/$ /classic/post.php
+RewriteRule ^/chatty/stories\.json$ /classic/getStories.php
+
+</IfModule>
+</VirtualHost>
