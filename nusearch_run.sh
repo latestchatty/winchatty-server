@@ -1,10 +1,9 @@
 #!/bin/sh
 
-LOG_FILE=/tmp/winchatty-indexer.log
-
+cd /mnt/websites/winchatty.com/
 while true
 do
-   echo Started at `date` >> $LOG_FILE
-   php5 nusearch_index.php | tee -a $LOG_FILE
+   echo Started at `date`
+   php5 nusearch_index.php
    sleep 5
 done

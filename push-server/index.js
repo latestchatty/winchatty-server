@@ -174,12 +174,17 @@ app.use('/', function(req, res) {
 app.timeout = 0;
 app.listen(80);
 
-// Set up HTTPS
-var httpsOptions = {
-   key: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key'),
-   cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt'),
-   ca: [ fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt') ]
-};
-var httpsServer = require('https').createServer(httpsOptions, app);
-httpsServer.timeout = 0;
-httpsServer.listen(443);
+// Set up HTTPS, but only if the key files are present.
+var winchattyKeyPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key';
+var winchattyCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt';
+var caCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt';
+if (fs.existsSync(winchattyKeyPath) && fs.existsSync(winchattyCertPath) && fs.existsSync(caCertPath)) {
+   var httpsOptions = {
+      key: fs.readFileSync(winchattyKeyPath),
+      cert: fs.readFileSync(winchattyCertPath),
+      ca: [ fs.readFileSync(caCertPath) ]
+   };
+   var httpsServer = require('https').createServer(httpsOptions, app);
+   httpsServer.timeout = 0;
+   httpsServer.listen(443);
+}

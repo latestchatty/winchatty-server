@@ -1,10 +1,9 @@
 #!/bin/sh
 
-LOG_FILE=/tmp/winchatty-push-server.log
-
+cd /mnt/websites/winchatty.com/
 while true
 do
-   echo Started at `date` >> $LOG_FILE
-   node push-server/index.js | tee -a $LOG_FILE
+   echo Started at `date`
+   node push-server/index.js
    sleep 5
 done

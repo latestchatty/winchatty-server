@@ -34,8 +34,8 @@ set -x
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-cli php-apc php-pear libapache2-mod-php5 nodejs \
-   nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc
+apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php-apc php-pear \
+   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc
 
 echo "America/Chicago" > /etc/timezone
 dpkg-reconfigure --frontend noninteractive tzdata
@@ -74,6 +74,7 @@ sudo -u $OWNER ln -s /home/chatty/backend-data /mnt/ssd/ChattyIndex
 pushd /home/chatty/backend/deployment
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
 cp -f pgbouncer/userlist.txt /etc/pgbouncer/
+echo START=1 > /etc/default/pgbouncer
 cp -f apache/default /etc/apache2/sites-available/
 cp -f apache/apache2.conf /etc/apache2/
 cp -f apache/ports.conf /etc/apache2/
