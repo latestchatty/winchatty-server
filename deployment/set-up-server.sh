@@ -17,8 +17,8 @@
 #   export SHACK_USERNAME=(shacknews username)
 #   export SHACK_PASSWORD=(shacknews password)
 #   export DUMP_FILE=(filename of the sql dump to use, see above)
-#   curl https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh | bash
-#   passwd $OWNER
+#   wget https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh
+#   bash set-up-server.sh
 #   reboot
 #
 # To use your newly provisioned server, on your local computer edit the hosts file (/etc/hosts or
@@ -72,14 +72,16 @@ sudo -u $OWNER ln -s /home/chatty/backend /mnt/websites/winchatty.com
 mkdir /mnt/ssd
 chown $OWNER:www-data /mnt/ssd
 sudo -u $OWNER ln -s /home/chatty/backend-data /mnt/ssd/ChattyIndex
+sudo -u $OWNER touch /mnt/ssd/ChattyIndex/ForceReadNewPosts
 
 pushd /home/chatty/backend/deployment
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
 cp -f pgbouncer/userlist.txt /etc/pgbouncer/
 echo START=1 > /etc/default/pgbouncer
-cp -f apache/default /etc/apache2/sites-available/
+cp -f apache/default /etc/apache2/sites-available/000-default.conf
 cp -f apache/apache2.conf /etc/apache2/
 cp -f apache/ports.conf /etc/apache2/
+cf -f apache/negotiation.conf /etc/apache2/mods-enabled/
 cp -f php/php-apache.ini /etc/php5/apache2/php.ini
 cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
@@ -89,3 +91,5 @@ popd
 sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
 sudo -u postgres createdb -E UTF8 -O nusearch chatty
 curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -u postgres psql chatty
+
+echo Installation complete. You must reboot.
