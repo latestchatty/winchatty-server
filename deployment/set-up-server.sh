@@ -10,6 +10,7 @@
 #
 # Restoring the complete database can take several hours.  The sample database takes only a few minutes.
 # Recommend using the sample database unless you are running on a beefy machine and want to test at full scale.
+# The sample database runs fine on a t2.micro instance with the default 8GB of EBS space.
 #
 # Installation instructions (as root):
 #   export OWNER=(name of the new unix user that will own all site files and processes)
@@ -82,7 +83,7 @@ cp -f apache/ports.conf /etc/apache2/
 cp -f php/php-apache.ini /etc/php5/apache2/php.ini
 cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
-sed "s/USERNAME/$OWNER/g" upstart/winchatty-push-server.conf > /etc/init/winchatty-push-server.conf
+cp -f upstart/winchatty-push-server.conf /etc/init/
 popd
 
 sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
