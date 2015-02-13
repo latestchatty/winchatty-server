@@ -1,29 +1,33 @@
 #!/bin/sh
 
-# Requires Ubuntu.  Tested on Ubuntu Server 14.04 LTS 64-bit.
-# Recommended at least 64GB of SSD storage.  A t2.micro instance can handle it, but restoring the database will take
-# a couple hours.  Use a faster instance type if you can.  The real winchatty.com site runs on a Linode instance with
-# 4GB RAM and 100GB SSD.
+# This automated installation script is designed for Ubuntu.  Tested on Ubuntu Server 14.04 LTS 64-bit.
 #
 # You must have a Shacknews account dedicated to this.  You must set up the account so all the filters are enabled.
-# Don't run this on a server that you're already using for something else.
 #
-# Instructions (as root):
-#   USER=<name of the new unix user that will own all site files and processes>
-#   SHACK_USERNAME=<shacknews username>
-#   SHACK_PASSWORD=<shacknews password>
+# You can choose from two different database dumps by setting $DUMP_FILE:
+#   chatty-2015-02-12.sql.gz  (a complete database snapshot; requires 30GB of disk space)
+#   chatty-sample.sql.gz      (a small subset of posts; requires 1GB of disk space)
+#
+# Restoring the complete database can take several hours.  The sample database only takes a few minutes.
+#
+# Installation instructions (as root):
+#   USER=(name of the new unix user that will own all site files and processes)
+#   SHACK_USERNAME=(shacknews username)
+#   SHACK_PASSWORD=(shacknews password)
+#   DUMP_FILE=(filename of the sql dump to use, see above)
 #   curl https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh | sh
 #   passwd $USER
 #   reboot
 #
 # To use your newly provisioned server, on your local computer edit the hosts file (/etc/hosts or
-# C:\windows\system32\drivers\etc\hosts) to point winchatty.com at your server's IP address.  Now winchatty.com will
+# C:\windows\system32\drivers\etc\hosts) to point winchatty.com to your server's IP address.  Now winchatty.com will
 # resolve to your server and all applications (Lamp) and sites (the NiXXeD frontend) will use it.  This will let you
 # easily flip back and forth between the real winchatty.com and your instance just by editing the hosts file.
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-cli php-apc php-pear libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop
+apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-cli php-apc php-pear libapache2-mod-php5 nodejs \
+   nodejs-legacy npm build-essential zip unzip git s3cmd htop
 
 echo "America/Chicago" > /etc/timezone
 dpkg-reconfigure --frontend noninteractive tzdata
@@ -72,4 +76,4 @@ popd
 
 sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
 sudo -u postgres createdb -E UTF8 -O nusearch chatty
-curl http://s3.amazonaws.com/winchatty/chatty-2015-02-12.sql.gz | gunzip -c | sudo -u postgres psql chatty
+curl http://s3.amazonaws.com/winchatty/$DUMPFILE | gunzip -c | sudo -u postgres psql chatty
