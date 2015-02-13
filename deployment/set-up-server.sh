@@ -46,6 +46,10 @@ sudo -u $USER echo "define('WINCHATTY_USERNAME', '$SHACK_USERNAME');" >> ConfigU
 sudo -u $USER echo "define('WINCHATTY_PASSWORD', '$SHACK_PASSWORD');" >> ConfigUserPass.php
 popd
 
+pushd /home/chatty/backend/push-server
+sudo -H -u $USER npm install
+popd
+
 mkdir /mnt/websites
 chown $USER:www-data /mnt/websites
 sudo -u $USER ln -s /home/chatty/backend /mnt/websites/winchatty.com
@@ -58,6 +62,8 @@ pushd /home/chatty/backend/deployment
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
 cp -f pgbouncer/userlist.txt /etc/pgbouncer/
 cp -f apache/default /etc/apache2/sites-available/
+cp -f apache/apache2.conf /etc/apache2/
+cp -f apache/ports.conf /etc/apache2/
 cp -f php/php-apache.ini /etc/php5/apache2/php.ini
 cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$USER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
