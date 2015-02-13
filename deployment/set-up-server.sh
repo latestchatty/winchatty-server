@@ -5,10 +5,11 @@
 # You must have a Shacknews account dedicated to this.  You must set up the account so all the filters are enabled.
 #
 # You can choose from two different database dumps by setting $DUMP_FILE:
-#   chatty-2015-02-12.sql.gz  (a complete database snapshot; requires 30GB of disk space)
+#   chatty-2015-02-12.sql.gz  (a complete database snapshot; requires 30GB of SSD)
 #   chatty-sample.sql.gz      (a small subset of posts; requires 1GB of disk space)
 #
 # Restoring the complete database can take several hours.  The sample database takes only a few minutes.
+# Recommend using the sample database unless you are running on a beefy machine and want to test at full scale.
 #
 # Installation instructions (as root):
 #   export OWNER=(name of the new unix user that will own all site files and processes)
