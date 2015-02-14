@@ -4,6 +4,7 @@
 -- Instructions: (as postgres or a user with permission to access the db)
 --   psql -f upgrade-db.sql chatty
 
+BEGIN TRANSACTION;
 DO $$
    BEGIN
 
@@ -25,3 +26,4 @@ DO $$
 
    END;
 $$ LANGUAGE plpgsql;
+COMMIT TRANSACTION;
