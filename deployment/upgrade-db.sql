@@ -1,8 +1,9 @@
 -- This script will migrate your database to the current version.
 -- The version number is stored as a comment on the 'indexer' table.
 -- 
--- Instructions: (as postgres or a user with permission to access the db)
---   psql -f upgrade-db.sql chatty
+-- Instructions:
+--   psql -h 127.1 -f test.sql chatty nusearch
+--   (enter the password 'nusearch')
 
 BEGIN TRANSACTION;
 DO $$
