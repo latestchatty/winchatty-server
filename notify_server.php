@@ -174,8 +174,5 @@ function canonicalize($keyword)
 function debugLog($message)
 {
    $timestamp = date('r');
-   $fp = fopen('/tmp/notify.log', 'a');
-   fprintf($fp, "[%s] %s\n\n", $timestamp, $message);
-   fclose($fp);
-   echo "$message\n\n";
+   printf("[%s] %s\n\n", $timestamp, $message);
 }
