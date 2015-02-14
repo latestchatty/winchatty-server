@@ -77,7 +77,7 @@ class Parser
    {
       # This function will reuse a login over and over again until Shacknews kicks us off.
       # This cannot be used for user-specific pages, like Shackmessages.
-      $cookiejar = data_directory . 'Login.cookie';
+      $cookiejar = '/tmp/Login.cookie';
       
       $curl = curl_init();
       curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
