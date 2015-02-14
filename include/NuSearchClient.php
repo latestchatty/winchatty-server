@@ -1175,30 +1175,14 @@ function nfy_attachAccount($pg, $username, $clientId)
    nsc_execute($pg, 'UPDATE notify_client SET username = $1 WHERE id = $2', array($username, $clientId));
 }
 
-function nfy_waitIfChrome()
-{
-   # Work around ChromeShack's bug that continues looping on a 1 second interval even when an error is returned
-   # that won't be fixed by trying again.  Nobody reads my documentation :(
-   if (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== false)
-   {
-      sleep(10);
-   }
-}
-
 function nfy_checkClientId($pg, $clientId, $mustHaveUsername = false)
 {
    $clients = nsc_query($pg, 'SELECT id, username FROM notify_client WHERE id = $1', array($clientId));
    if (empty($clients))
-   {
-      nfy_waitIfChrome();
       nsc_die('ERR_UNKNOWN_CLIENT_ID', 'Unknown client ID.');
-   }
    $client = $clients[0];
    if ($mustHaveUsername && (is_null($client[1]) || empty($client[1])))
-   {
-      nfy_waitIfChrome();
       nsc_die('ERR_CLIENT_NOT_ASSOCIATED', 'Client is not associated with a Shacknews account.');
-   }
 }
 
 // Queues a notification and returns the number of clients that it was sent to.
