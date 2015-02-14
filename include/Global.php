@@ -30,8 +30,6 @@ require_once 'ProfileParser.php';
 require_once 'ClassicAdapter.php';
 
 require_once 'NuSearchClient.php';
-require_once 'PorterStemmer.php';
-require_once 'ConsFile.php';
 
 error_reporting(E_ALL);
 

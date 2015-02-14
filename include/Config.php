@@ -15,7 +15,6 @@
 
 define('data_directory',             '/mnt/websites/winchatty.com/data/');
 define('bookmarks_data_directory',   '/mnt/websites/winchatty.com/data/Bookmarks/');
-define('locatecache_data_directory', '/mnt/websites/winchatty.com/data/LocateCache/');
 define('search_data_directory',      '/mnt/websites/winchatty.com/data/Search/');
 
 # For WinChatty v2 API
