@@ -2,7 +2,7 @@
 -- The version number is stored as a comment on the 'indexer' table.
 -- 
 -- Instructions:
---   psql -h 127.1 -f test.sql chatty nusearch
+--   psql -h 127.1 -f upgrade-db.sql chatty nusearch
 --   (enter the password 'nusearch')
 
 BEGIN TRANSACTION;
