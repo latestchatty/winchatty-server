@@ -15,16 +15,6 @@ function escapequotes($str)
 
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"> 
 <html>
-   <!--
-   <?
-      if (!use_chattysearchd)
-      {
-         # Web browsers won't display anything until they get X bytes of data first.
-         for ($i = 0; $i < 512; $i++)
-            echo ' ';
-      }
-   ?>
-   -->
    <head>
       <meta http-equiv="Content-type" content="text/html; charset=utf-8"> 
       <title>WinChatty Search</title>
@@ -120,15 +110,6 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
 {
    $storyCount = count(glob(search_data_directory . '*.story'));
    
-   if (!use_chattysearchd)
-   {
-      ?>
-      <div style="margin: 20px auto; width: <?=$storyCount?>px; height: 20px; border: 1px solid #C60F52;" id="progressOuter">
-         <div style="width: 0px; height: 100%; background: #E8D1D9;" id="progressInner"></div>
-      </div>
-      <?
-   }
-
    flush();
 
    $page = (isset($_REQUEST['page']) ? intval($_REQUEST['page']) : 1);
@@ -144,12 +125,6 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
    }
    
    $startingTime = microtime(true);
-   
-/*   if (use_chattysearchd)
-      $results = SearchEngine()->memorySearch($terms, $author, $parentAuthor, $category, $offset, $perPage);
-   else
-      $results = SearchEngine()->search($terms, $author, $parentAuthor, $category, $limit, true);
-*/
 
    $realPage = $page * 2 - 1;
    $results1 = array();
@@ -191,16 +166,6 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
       $limit = ($page + 1) * $perPage;
    }
 
-   if (!use_chattysearchd)
-   {
-      $results = array_slice($results, $offset, $perPage);
-      ?>
-      <script type="text/javascript">
-         document.getElementById("progressOuter").style.display = "none";
-      </script>
-      <?
-   }
-   
    ?>
    <div style="font-size: 16px; padding: 10px; float: left;">
    Found <?=number_format($totalResults)?> total results.
