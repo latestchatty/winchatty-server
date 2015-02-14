@@ -27,14 +27,22 @@
 # Now winchatty.com will resolve to your server and all applications (e.g. Lamp) and sites (e.g. the NiXXeD frontend)
 # will use it.  This will let you easily flip back and forth between the real winchatty.com and your instance just by
 # editing the hosts file.
+#
+# Three services are run under upstart (and can be controlled with start/stop/restart):
+#   winchatty-indexer      (Synchronizes the database with the Shack, does not listen on any ports)
+#   winchatty-push-server  (The front-facing web server, running on port 80)
+#   winchatty-frontend     (TheNiXXeD's frontend, running on port 3000)
+#
+# You can monitor the respective log files using:
+#   sudo tail -f /var/log/upstart/winchatty-indexer.log
+#   sudo tail -f /var/log/upstart/winchatty-push-server.log
+#   sudo tail -f /var/log/upstart/winchatty-frontend.log
 
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
 if [ -z "$OWNER" ]; then echo "Missing OWNER."; exit 1; fi
 if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
 if [ -z "$SHACK_PASSWORD" ]; then echo "Missing SHACK_PASSWORD."; exit 1; fi
 if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
-
-set -x
 
 apt-get update
 apt-get -y upgrade
@@ -64,6 +72,11 @@ chown $OWNER:www-data ConfigUserPass.php
 popd
 
 pushd /home/chatty/backend/push-server
+sudo -H -u $OWNER npm install
+popd
+
+pushd /home/chatty/frontend
+sudo -H -u $OWNER bower install --config.interactive=false
 sudo -H -u $OWNER npm install
 popd
 
