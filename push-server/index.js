@@ -182,12 +182,14 @@ app.listen(80);
 var winchattyKeyPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key';
 var winchattyCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt';
 var caCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt';
-if (fs.existsSync(winchattyKeyPath) && fs.existsSync(winchattyCertPath) && fs.existsSync(caCertPath)) {
+if (fs.existsSync(winchattyKeyPath) && fs.existsSync(winchattyCertPath)) {
    var httpsOptions = {
       key: fs.readFileSync(winchattyKeyPath),
-      cert: fs.readFileSync(winchattyCertPath),
-      ca: [ fs.readFileSync(caCertPath) ]
+      cert: fs.readFileSync(winchattyCertPath)
    };
+   if (fs.existsSync(caCertPath)) {
+      httpsOptions.ca = [ fs.readFileSync(caCertPath) ];
+   }
    var httpsServer = require('https').createServer(httpsOptions, app);
    httpsServer.timeout = 0;
    httpsServer.listen(443);

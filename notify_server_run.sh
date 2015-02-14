@@ -1,14 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
-clear
-echo ================================================================================
-
+cd /mnt/websites/winchatty.com/
 while true
 do
-   time php5 notify_server.php
-   echo
-   echo -n "Finished at "
-   date
-   echo ================================================================================
+   echo Started at `date`
+   php5 notify_server.php
    sleep 5
 done

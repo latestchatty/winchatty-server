@@ -1,0 +1,14 @@
+#!/bin/sh 
+echo "-- winchatty-indexer ---------------------"
+sudo tail -n 10 /var/log/upstart/winchatty-indexer.log
+echo "-- winchatty-frontend ---------------------"
+sudo tail -n 10 /var/log/upstart/winchatty-frontend.log
+echo "-- winchatty-push-server ---------------------"
+sudo tail -n 10 /var/log/upstart/winchatty-push-server.log
+echo "-- winchatty-notify-server ---------------------"
+sudo tail -n 10 /var/log/upstart/winchatty-notify-server.log
+echo "-- apache error.log ---------------------"
+sudo tail -n 10 /var/log/apache2/error.log
+
+
+

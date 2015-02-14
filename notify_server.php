@@ -30,6 +30,8 @@ function runNotifyServer()
    
    while (time() < $startTime + 300)
    {
+      sleep(1);
+      
       if ($notifyTriggers === false || time() > $notifyTriggersTimestamp + 60)
       {
          $notifyTriggers = getNotifyTriggers($pg);
@@ -37,7 +39,7 @@ function runNotifyServer()
          deleteExpiredNotifications($pg);
       }
    
-      $url = 'https://winchatty.com/v2/waitForEvent?includeParentAuthor=true&lastEventId=' . $eventId;
+      $url = 'http://winchatty.com/v2/waitForEvent?includeParentAuthor=true&lastEventId=' . $eventId;
       $response = json_decode(file_get_contents($url), true);
       
       if (isset($response['error']))

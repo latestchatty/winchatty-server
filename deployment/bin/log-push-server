@@ -1,0 +1,2 @@
+#!/bin/sh 
+sudo tail -f /var/log/upstart/winchatty-push-server.log
