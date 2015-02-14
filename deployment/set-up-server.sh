@@ -18,16 +18,18 @@
 #   export SHACK_PASSWORD=(shacknews password)
 #   export DUMP_FILE=(filename of the sql dump to use, see above)
 #   wget https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh
+#   (inspect the script to make sure you know what it's going to do)
 #   bash set-up-server.sh
 #   reboot
 #
-# To use your newly provisioned server, on your local computer edit the hosts file (/etc/hosts or
-# C:\windows\system32\drivers\etc\hosts) to point winchatty.com to your server's IP address.  Now winchatty.com will
-# resolve to your server and all applications (Lamp) and sites (the NiXXeD frontend) will use it.  This will let you
-# easily flip back and forth between the real winchatty.com and your instance just by editing the hosts file.
+# To use your newly provisioned server, edit the hosts file (/etc/hosts or C:\windows\system32\drivers\etc\hosts) on
+# your local computer to point winchatty.com and www.winchatty.com to your server's IP address.
+# Now winchatty.com will resolve to your server and all applications (e.g. Lamp) and sites (e.g. the NiXXeD frontend)
+# will use it.  This will let you easily flip back and forth between the real winchatty.com and your instance just by
+# editing the hosts file.
 
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
-if [ -z "$OWNER" ]; then echo "Missing USER."; exit 1; fi
+if [ -z "$OWNER" ]; then echo "Missing OWNER."; exit 1; fi
 if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
 if [ -z "$SHACK_PASSWORD" ]; then echo "Missing SHACK_PASSWORD."; exit 1; fi
 if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
