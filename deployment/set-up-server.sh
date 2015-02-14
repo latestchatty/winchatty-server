@@ -28,12 +28,17 @@
 # will use it.  This will let you easily flip back and forth between the real winchatty.com and your instance just by
 # editing the hosts file.
 #
-# Three services are run under upstart (and can be controlled with start/stop/restart):
+# Three custom services are run under upstart (and can be controlled with start/stop/restart):
 #   winchatty-indexer      (Synchronizes the database with the Shack, does not listen on any ports)
-#   winchatty-push-server  (The front-facing web server, running on port 80)
-#   winchatty-frontend     (TheNiXXeD's frontend, running on port 3000)
+#   winchatty-push-server  (Main web server, running on port 80)
+#   winchatty-frontend     (Web server for TheNiXXeD's frontend, running on port 3000)
 #
-# You can monitor the respective log files using:
+# There are also some standard services:
+#   apache                 (Web server for WinChatty API, running on port 81)
+#   postgresql             (Database server, running on port 5432)
+#   pgbouncer              (Database connection pool, running on port 6432)
+#
+# You can monitor the custom service log files using:
 #   sudo tail -f /var/log/upstart/winchatty-indexer.log
 #   sudo tail -f /var/log/upstart/winchatty-push-server.log
 #   sudo tail -f /var/log/upstart/winchatty-frontend.log
