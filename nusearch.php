@@ -86,12 +86,12 @@ $load = trim($loadArray[1]);
       <meta charset="utf-8"> 
       <title>WinChatty NuSearch</title>
       <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic" rel="stylesheet" type="text/css">
-      <link href="//s3.amazonaws.com/winchatty/nusearch_style.css" rel="stylesheet" type="text/css">
-      <script src="//s3.amazonaws.com/winchatty/jquery-1.10.1.min.js"></script>
+      <link href="nusearch_style.css" rel="stylesheet" type="text/css">
+      <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
    </head>
    <body>
       <div id="formContainer" style="position: fixed; width: 100%;">
-         <a href="/nusearch"><img src="//s3.amazonaws.com/winchatty/App128.png" id="logo" alt="WinChatty NuSearch"></a>
+         <a href="/nusearch"><img src="/img/App128.png" id="logo" alt="WinChatty NuSearch"></a>
          <form action="/nusearch" method="get">
             <table id="formTable">
                <tr id="formHeader">
@@ -166,7 +166,7 @@ $load = trim($loadArray[1]);
       <center>
          <div id="results"></div>
       </center>
-      <div style="text-align: center;" id="loading"><img src="//s3.amazonaws.com/winchatty/ajax-loader.gif"></div>
+      <div style="text-align: center;" id="loading"><img src="/img/ajax-loader.gif"></div>
       <center>
          <input type="submit" value="Load more" class="button" style="display: none; width: 100px;" id="loadMore" onclick="loadMore()">
          <br><br><br>

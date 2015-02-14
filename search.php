@@ -87,7 +87,7 @@ function escapequotes($str)
          </style>
    </head>
    <body>
-      <div style="text-align: center;"><a href="/nusearch" style="color: red;">A new search engine is now available! 11/28/13</a></div>
+      <div style="text-align: center;"><a href="/nusearch" style="color: red;">Go back to WinChatty NuSearch</a></div>
       <form action="search" method="get">
          <table class="formTable" cellspacing=0 cellpadding=0>
             <tr class="formHeader">
@@ -339,19 +339,6 @@ else
 {
    ?>
    <div class="frontpage">
-      <div style="float: right; text-align: center;">
-         <a href="http://winchatty.com/WinChatty-3.0k.air">
-         <img src="img/App128.png" alt="" border=0><br>
-         Download WinChatty 3.0k</a>
-      </div>
-
-      Friends,<br><br>
-      
-      WinChatty Search is now a front-end for the official Shacknews search engine.  You can download
-      the latest WinChatty desktop client by clicking the icon on the right.<br><br>
-      
-      Love,<br>
-      electroly
    </div>
    <?
 }
