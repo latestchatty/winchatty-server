@@ -124,6 +124,8 @@ sudo -u $OWNER touch /mnt/ssd/ChattyIndex/ForceReadNewPosts
 pushd /home/chatty/backend/deployment
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
 cp -f pgbouncer/userlist.txt /etc/pgbouncer/
+rm -f /var/log/postgresql/pgbouncer.log
+sudo -u postgres ln -s /dev/null /var/log/postgresql/pgbouncer.log
 echo START=1 > /etc/default/pgbouncer
 cp -f apache/default /etc/apache2/sites-available/000-default.conf
 cp -f apache/apache2.conf /etc/apache2/
