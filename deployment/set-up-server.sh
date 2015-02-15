@@ -67,7 +67,7 @@ if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php-apc php-pear \
+apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
    libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl
 npm install -g bower
 
