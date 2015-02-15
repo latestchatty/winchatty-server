@@ -99,8 +99,11 @@ function handle_new_message($username, $password, $message) {
          $relayed_subject = trim(substr($relayed_subject, 0, $bracket_pos));
       }
       $relayed_subject .= ' [from ' . $message['from'] . ']';
-      foreach ($subscribers as $subscriber)
-         send_message($username, $password, $subscriber, $relayed_subject, $relayed_body);
+      foreach ($subscribers as $subscriber) {
+         if (strtolower($subscriber) != strtolower($message['from'])) {
+            send_message($username, $password, $subscriber, $relayed_subject, $relayed_body);
+         }
+      }
    } else {
       // not a subscriber; send them back a message telling them wtf
       send_message($username, $password, $message['from'], 'Re: ' . $message['subject'],
