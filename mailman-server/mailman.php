@@ -93,8 +93,14 @@ function handle_new_message($username, $password, $message) {
    if ($is_subscriber) {
       // it's legit; relay this message to all subscribers
       $relayed_body = '*** ' . $message['from'] . " wrote:\r\n" . $message['body'];
+      $relayed_subject = trim($message['subject']);
+      $bracket_pos = strpos($relayed_subject, '[');
+      if ($bracket_pos !== false) {
+         $relayed_subject = trim(substr($relayed_subject, 0, $bracket_pos));
+      }
+      $relayed_subject .= ' [from ' . $message['from'] . ']';
       foreach ($subscribers as $subscriber)
-         send_message($username, $password, $subscriber, $message['subject'], $relayed_body);
+         send_message($username, $password, $subscriber, $relayed_subject, $relayed_body);
    } else {
       // not a subscriber; send them back a message telling them wtf
       send_message($username, $password, $message['from'], 'Re: ' . $message['subject'],
