@@ -13,14 +13,27 @@ DO $$
 
    IF obj_description('indexer'::regclass, 'pg_class') IS NULL THEN
       RAISE NOTICE 'Upgrading to version 1...';
-      CREATE TABLE post_lols (
-         post_id INTEGER NOT NULL,
-         tag TEXT NOT NULL,
-         count INTEGER NOT NULL,
-         PRIMARY KEY (post_id, tag)
-      );
-      CREATE INDEX idx_post_lols_post_id ON post_lols (post_id);
+      IF NOT EXISTS (SELECT 0 FROM pg_class WHERE relname = 'post_lols') THEN
+         CREATE TABLE post_lols (
+            post_id INTEGER NOT NULL,
+            tag TEXT NOT NULL,
+            count INTEGER NOT NULL,
+            PRIMARY KEY (post_id, tag)
+         );
+         CREATE INDEX idx_post_lols_post_id ON post_lols (post_id);
+      END IF;
       COMMENT ON TABLE indexer IS '1';
+   END IF;
+
+   IF obj_description('indexer'::regclass, 'pg_class') = '1' THEN
+      RAISE NOTICE 'Upgrading to version 2...';
+      CREATE TABLE new_post_queue (
+         id SERIAL PRIMARY KEY,
+         username TEXT NOT NULL,
+         parent_id INTEGER NOT NULL,
+         body TEXT NOT NULL
+      );
+      COMMENT ON TABLE indexer IS '2';
    END IF;
 
    RAISE NOTICE 'New version: %', obj_description('indexer'::regclass, 'pg_class');

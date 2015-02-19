@@ -13,15 +13,14 @@
 # You should have received a copy of the GNU General Public License along with this program; if not, write to the Free 
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_once 'include/Global.php';
+require_once '../include/Global.php';
+require_once 'indexer_util.php';
 
 if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
 
 define('MAX_NUKED_RETRIES',     10);
-define('TOTAL_TIME_SEC',        300);
 define('RETRY_INTERVAL_SEC',    35);
-define('LOL_INTERVAL_SEC',      60);
 define('NEW_POST_INTERVAL_SEC', 5);
 define('NUKE_SCAN_DELAY_SEC',   26); # Wait N seconds after startup and then run the nuked thread scan
 define('DELAY_USEC',            0); # 1 sec = 1000000 usec
@@ -668,28 +667,6 @@ function executeOrThrow($pg, $sql, $args) # void
       throw new Exception('SQL execute failed.');
 }
 
-function checkInternet() # void
-{
-   $curl = curl_init();
-   curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-   curl_setopt($curl, CURLOPT_HEADER, true);
-   curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-   curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-   curl_setopt($curl, CURLOPT_USERAGENT, 'WinChatty NuSearch');
-   curl_setopt($curl, CURLOPT_HTTPHEADER, array('X-Requested-With: libcurl'));
-   curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-   curl_setopt($curl, CURLOPT_URL, "http://www.shacknews.com/robots.txt");
-   curl_setopt($curl, CURLOPT_POST, false);
-   $robots = curl_exec($curl);
-   curl_close($curl);
-
-   if ($robots === false)
-      throw new Exception('Internet access problem.');
-   if (strpos($robots, 'Disallow:') === false)
-      throw new Exception('robots.txt data was not expected.');
-}
-
 function flagStringToInt($flag)
 {
    switch ($flag)
@@ -801,29 +778,6 @@ function generateFrontPageFile($pg)
       'uptime'             => `/usr/bin/uptime`
    );
    file_put_contents($frontPageDataFilePath, serialize($data));
-}
-
-function logNewPost($pg, $id)
-{
-   $posts = nsc_getPosts($pg, array($id));
-
-   $post = $posts[0];
-   $parentId = $post['parentId'];
-   $parentAuthor = '';
-   if ($parentId > 0)
-   {
-      $parentPosts = nsc_getPosts($pg, array($parentId));
-      $parentPost = $parentPosts[0];
-      $parentAuthor = $parentPost['author'];
-   }
-
-   # [E_NEWP]
-   $newp = array(
-      'postId' => intval($id),
-      'post' => $post,
-      'parentAuthor' => $parentAuthor
-   );
-   nsc_logEvent($pg, 'newPost', $newp);
 }
 
 function logPostEdit($pg, $id, $categoryInt)

@@ -1,9 +1,12 @@
 #!/bin/sh
 
-cd /mnt/websites/winchatty.com/
+cd /mnt/websites/winchatty.com/indexer-server/
+
+export INDEXER_SCRIPT=`php5 which_indexer_script.php`
+
 while true
 do
-   echo Started at `date`
-   php5 indexer-server/html_scraping_indexer.php
+   echo Started $INDEXER_SCRIPT at `date`
+   php5 $INDEXER_SCRIPT
    sleep 5
 done

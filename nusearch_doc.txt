@@ -6,6 +6,7 @@ CREATE TABLE indexer (
    next_low_id    INTEGER  NOT NULL,
    next_high_id   INTEGER  NOT NULL
 );
+COMMENT ON TABLE indexer IS '2';
 
 CREATE TABLE thread (
    id          INTEGER     PRIMARY KEY,
@@ -89,6 +90,13 @@ CREATE TABLE event (
 CREATE TABLE reindex_request (
    id SERIAL PRIMARY KEY,
    post_id INTEGER NOT NULL
+);
+
+CREATE TABLE new_post_queue (
+   id SERIAL PRIMARY KEY,
+   username TEXT NOT NULL,
+   parent_id INTEGER NOT NULL,
+   body TEXT NOT NULL
 );
 
 INSERT INTO indexer (next_low_id, next_high_id) VALUES (31156792, 31156793);

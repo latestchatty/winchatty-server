@@ -7,19 +7,10 @@
 #
 # You must have a Shacknews account dedicated to this.  You must set up the account so all the filters are enabled.
 #
-# You can choose from two different database dumps by setting $DUMP_FILE:
-#   chatty-2015-02-12.sql.gz  (a complete database snapshot; requires 30GB of SSD)
-#   chatty-sample.sql.gz      (a small subset of posts; requires 1GB of disk space)
-#
-# Restoring the complete database can take several hours.  The sample database takes only a few minutes.
-# Recommend using the sample database unless you are running on a beefy machine and want to test at full scale.
-# The sample database runs fine on a t2.micro instance with the default 8GB of EBS space.
-#
 # Installation instructions (as root):
 #   export OWNER=(name of the new unix user that will own all site files and processes)
 #   export SHACK_USERNAME=(shacknews username)
 #   export SHACK_PASSWORD=(shacknews password)
-#   export DUMP_FILE=(filename of the sql dump to use, see above)
 #   wget https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh
 #   (inspect the script to make sure you know what it's going to do)
 #   bash set-up-server.sh
@@ -32,10 +23,6 @@
 # editing the hosts file.
 #
 # Test the frontend at: http://winchatty.com/frontend/  (after editing your hosts file)
-#
-# After the first reboot, the indexer will begin "catching up" from when the database snapshot was taken to the current
-# moment in the chatty.  Until that finishes, you won't see any threads in the frontend because it hasn't indexed the
-# threads from the last 18 hours yet.
 #
 # Custom upstart services:
 #   winchatty-indexer       (Synchronizes the database with the Shack, does not listen on any ports)
@@ -58,6 +45,8 @@
 #   log-all                 (The last 10 lines from each log file)
 #
 #######################################################################################################################
+
+export DUMP_FILE=chatty-blank.sql.gz
 
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
 if [ -z "$OWNER" ]; then echo "Missing OWNER."; exit 1; fi
@@ -92,6 +81,9 @@ echo "<?" > ConfigUserPass.php
 echo "define('WINCHATTY_USERNAME', '$SHACK_USERNAME');" >> ConfigUserPass.php
 echo "define('WINCHATTY_PASSWORD', '$SHACK_PASSWORD');" >> ConfigUserPass.php
 chown $OWNER:www-data ConfigUserPass.php
+sed "s/html_scraping_indexer/solo_indexer/g" Config.php > Config.php.new
+mv -f Config.php.new Config.php
+chown $OWNER:www-data Config.php
 popd
 
 pushd /home/chatty/backend/push-server
@@ -149,5 +141,6 @@ popd
 sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
 sudo -u postgres createdb -E UTF8 -O nusearch chatty
 curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -u postgres psql chatty
+sudo -u postgres psql -f /home/chatty/backend/deployment/upgrade-db.sh chatty
 
 echo Installation complete. You must reboot.
