@@ -95,7 +95,7 @@ pushd /home/chatty/frontend
 sudo -H -u $OWNER npm install
 sudo -H -u $OWNER bower install --config.interactive=false
 sudo -H -u $OWNER gulp build
-sudo -H -u $OWNER mv * /home/chatty/backend/frontend/
+sudo -H -u $OWNER mv build/* /home/chatty/backend/frontend/
 popd
 
 mkdir /home/chatty/sslcert
