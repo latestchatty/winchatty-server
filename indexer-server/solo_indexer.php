@@ -19,7 +19,7 @@ require_once 'indexer_util.php';
 if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
 
-define('LOOP_DELAY_USEC', 500000); # 0.5 sec
+define('LOOP_DELAY_USEC', 250000); # 1/4 sec
 
 startIndex();
 
@@ -59,8 +59,8 @@ function processNewPosts($pg)
       try
       {
          $newPostId = processNewPost($pg, $id, $username, $parentId, $body);
-         printf("Post #%d by \"%s\":\n%s%s\n\n", 
-            $newPostId, $username, substr($body, 0, 72), strlen($body) > 72 ? '...' : '');
+         printf("Post #%d by \"%s\" in reply to #%d:\n\"%s%s\"\n\n", 
+            $newPostId, $username, $parentId, substr($body, 0, 72), strlen($body) > 72 ? '...' : '');
          nsc_execute($pg, 'COMMIT', array());
          logNewPost($pg, $newPostId);
       }

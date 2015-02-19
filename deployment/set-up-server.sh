@@ -56,14 +56,14 @@ if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
 
 cd /tmp
 
+echo "America/Chicago" > /etc/timezone
+dpkg-reconfigure --frontend noninteractive tzdata
+
 apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
    libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl
 npm install -g bower
-
-echo "America/Chicago" > /etc/timezone
-dpkg-reconfigure --frontend noninteractive tzdata
 
 echo 127.0.0.1 winchatty.com >> /etc/hosts
 echo 127.0.0.1 www.winchatty.com >> /etc/hosts
@@ -118,6 +118,8 @@ chmod a+rw /mnt/ssd/ChattyIndex/ForceReadNewPosts
 sudo -u $OWNER echo 0 > /mnt/ssd/ChattyIndex/LastEventID
 
 pushd /home/chatty/backend/deployment
+sed "s/'UTC'/'America\/Chicago'/g" /etc/postgresql/*/main/postgresql.conf > /tmp/postgresql.conf.new
+mv -f /tmp/postgresql.conf.new /etc/postgresql/*/main/postgresql.conf
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
 cp -f pgbouncer/userlist.txt /etc/pgbouncer/
 rm -f /var/log/postgresql/pgbouncer.log
@@ -142,6 +144,7 @@ cp -f bin/log-notify-server /usr/bin/
 cp -f bin/log-all /usr/bin/
 popd
 
+/etc/init.d/postgresql restart
 sudo -H -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
 sudo -H -u postgres createdb -E UTF8 -O nusearch chatty
 curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -H -u postgres psql chatty
