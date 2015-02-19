@@ -36,7 +36,6 @@
 #
 # You can monitor various log files using these commands: (in /usr/bin)
 #   log-indexer             (Output of the winchatty-indexer service)
-#   log-frontend            (Output of the winchatty-frontend service)
 #   log-push-server         (Output of the winchatty-push-server service)
 #   log-notify-server       (Output of the winchatty-notify-server service)
 #   log-apache              (apache2 access log)
