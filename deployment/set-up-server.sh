@@ -54,6 +54,8 @@ if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
 if [ -z "$SHACK_PASSWORD" ]; then echo "Missing SHACK_PASSWORD."; exit 1; fi
 if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
 
+cd /tmp
+
 apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
@@ -138,9 +140,9 @@ cp -f bin/log-notify-server /usr/bin/
 cp -f bin/log-all /usr/bin/
 popd
 
-sudo -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
-sudo -u postgres createdb -E UTF8 -O nusearch chatty
-curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -u postgres psql chatty
-sudo -u postgres psql -f /home/chatty/backend/deployment/upgrade-db.sh chatty
+sudo -H -u postgres psql --command "CREATE USER nusearch WITH PASSWORD 'nusearch';"
+sudo -H -u postgres createdb -E UTF8 -O nusearch chatty
+curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -H -u postgres psql chatty
+sudo -H -u postgres psql -f /home/chatty/backend/deployment/upgrade-db.sql chatty
 
 echo Installation complete. You must reboot.
