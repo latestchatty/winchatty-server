@@ -26,7 +26,6 @@
 #
 # Custom upstart services:
 #   winchatty-indexer       (Synchronizes the database with the Shack, does not listen on any ports)
-#   winchatty-frontend      (Web server for TheNiXXeD's frontend, running on port 3000)
 #   winchatty-push-server   (Main web server, running on port 80)
 #   winchatty-notify-server (Push notification producer, does not listen on any ports)
 #
@@ -63,7 +62,7 @@ apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
    libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl
-npm install -g bower
+npm install -g bower gulp
 
 echo 127.0.0.1 winchatty.com >> /etc/hosts
 echo 127.0.0.1 www.winchatty.com >> /etc/hosts
@@ -93,7 +92,10 @@ sudo -H -u $OWNER npm install
 popd
 
 pushd /home/chatty/frontend
+sudo -H -u $OWNER npm install
 sudo -H -u $OWNER bower install --config.interactive=false
+sudo -H -u $OWNER gulp build
+sudo -H -u $OWNER mv * /home/chatty/backend/frontend/
 popd
 
 mkdir /home/chatty/sslcert
@@ -134,10 +136,8 @@ cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-push-server.conf > /etc/init/winchatty-push-server.conf
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-notify-server.conf > /etc/init/winchatty-notify-server.conf
-sed "s/USERNAME/$OWNER/g" upstart/winchatty-frontend.conf > /etc/init/winchatty-frontend.conf
 cp -f bin/log-apache /usr/bin/
 cp -f bin/log-apache-error /usr/bin/
-cp -f bin/log-frontend /usr/bin/
 cp -f bin/log-indexer /usr/bin/
 cp -f bin/log-push-server /usr/bin/
 cp -f bin/log-notify-server /usr/bin/

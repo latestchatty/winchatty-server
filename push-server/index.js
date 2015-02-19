@@ -166,10 +166,6 @@ proxy.on('error', function(err, req, res) {
    res.end();
 });
 
-app.use('/frontend/', function(req, res) {
-   proxy.web(req, res, {target: 'http://localhost:3000'});
-});
-
 app.use('/', function(req, res) {
    req.connection.setTimeout(0);
    proxy.web(req, res, {target: 'http://localhost:81'});
