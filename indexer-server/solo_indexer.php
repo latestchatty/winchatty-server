@@ -14,6 +14,7 @@
 # Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once '../include/Global.php';
+require_once 'indexer_util.php';
 
 if (php_sapi_name() !== 'cli')
    die('Must be run from the command line.');
@@ -38,6 +39,10 @@ function startIndex()
          usleep(LOOP_DELAY_USEC);
       }
    }
+   catch (Exception $e)
+   {
+      printf("ERROR: %s\n", $e->getMessage());
+   }
 }
 
 function processNewPosts($pg)
@@ -55,9 +60,9 @@ function processNewPosts($pg)
       {
          $newPostId = processNewPost($pg, $id, $username, $parentId, $body);
          printf("Post #%d by \"%s\":\n%s%s\n\n", 
-            $newPostId, $username, substr($body, 72), strlen($body) > 72 ? '...' : '');
+            $newPostId, $username, substr($body, 0, 72), strlen($body) > 72 ? '...' : '');
          nsc_execute($pg, 'COMMIT', array());
-         logNewPost($pg, intval($id));
+         logNewPost($pg, $newPostId);
       }
       catch (Exception $e)
       {
@@ -65,7 +70,7 @@ function processNewPosts($pg)
          nsc_execute($pg, 'ROLLBACK', array());
       }
 
-      nsc_execute($pg, 'DELETE FROM new_post_queue WHERE id = $1', array($queueId));
+      nsc_execute($pg, 'DELETE FROM new_post_queue WHERE id = $1', array($id));
    }
 }
 
@@ -82,7 +87,7 @@ function processNewPost($pg, $queueId, $username, $parentId, $taggedBody) # retu
    }
    else
    {
-      $threadId = nsc_selectValueOrFalse($pg, 'SELECT thread_id FROM post WHERE id = $1', array($parentId)));
+      $threadId = nsc_selectValueOrFalse($pg, 'SELECT thread_id FROM post WHERE id = $1', array($parentId));
       if ($threadId === false)
          throw new Exception('Parent ID does not exist.');
       else
@@ -147,16 +152,16 @@ function tagsToHtml($text)
 
    foreach ($complexReplacements as $r)
    {
-      $pattern = '/' . $r[0] . '(.*?)' . $r[1] . '/g';
+      $pattern = '/' . $r[0] . '(.*?)' . $r[1] . '/';
       $html = preg_replace($pattern, $r[2] . '$1' . $r[3], $html);
    }
 
    # replace orphaned opening shacktags, close them at the end of the post.
    foreach ($complexReplacements as $r)
    {
-      $pattern = '/' . $r[0] . '/g';
+      $pattern = '/' . $r[0] . '/';
       $count = 0;
-      $html = preg_replace($pattern, $r[2], $html, -1, &$count);
+      $html = preg_replace($pattern, $r[2], $html, -1, $count);
       for ($i = 0; $i < $count; $i++)
          $html .= $r[3];
    }

@@ -47,10 +47,25 @@ class ChattyParser extends Parser
    
       return $this->parseStory($this->download($url));
    }
+
+   public function soloPost($username, $password, $parentID, $body)
+   {
+      $pg = nsc_connectToDatabase();
+      nsc_checkLogin($username, $password);
+      nsc_execute($pg, 'INSERT INTO new_post_queue (username, parent_id, body) VALUES ($1, $2, $3)', array(
+         strval($username), intval($parentID), strval($body)));
+      nsc_disconnectFromDatabase($pg);
+   }
    
    public function post($username, $password, $parentID, $storyID, $body, 
       $contentTypeID = -1, $contentID = -1)
    {
+      if (V2_INDEXER_SCRIPT == 'solo_indexer.php')
+      {
+         $this->soloPost($username, $password, $parentID, $body);
+         return 'fixup_postbox_parent_for_remove('; # callers check for this string to detect success
+      }
+
       $postURL = 'http://www.shacknews.com/post_chatty.x';
 
       if ($parentID != 0 && ($contentTypeID == -1 || $contentID == -1))

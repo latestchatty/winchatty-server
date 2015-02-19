@@ -20,6 +20,7 @@ DO $$
             count INTEGER NOT NULL,
             PRIMARY KEY (post_id, tag)
          );
+         ALTER TABLE post_lols OWNER TO nusearch;
          CREATE INDEX idx_post_lols_post_id ON post_lols (post_id);
       END IF;
       COMMENT ON TABLE indexer IS '1';
@@ -33,6 +34,7 @@ DO $$
          parent_id INTEGER NOT NULL,
          body TEXT NOT NULL
       );
+      ALTER TABLE new_post_queue OWNER TO nusearch;
       COMMENT ON TABLE indexer IS '2';
    END IF;
 
