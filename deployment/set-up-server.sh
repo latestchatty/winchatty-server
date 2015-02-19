@@ -114,6 +114,8 @@ mkdir /mnt/ssd
 chown $OWNER:www-data /mnt/ssd
 sudo -u $OWNER ln -s /home/chatty/backend-data /mnt/ssd/ChattyIndex
 sudo -u $OWNER touch /mnt/ssd/ChattyIndex/ForceReadNewPosts
+chmod a+rw /mnt/ssd/ChattyIndex/ForceReadNewPosts
+sudo -u $OWNER echo 0 > /mnt/ssd/ChattyIndex/LastEventID
 
 pushd /home/chatty/backend/deployment
 cp -f pgbouncer/pgbouncer.ini /etc/pgbouncer/
