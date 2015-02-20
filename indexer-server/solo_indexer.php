@@ -126,7 +126,7 @@ function tagsToHtml($text)
    $html = str_replace("\n", '<br>', $html);
    $html = str_replace("\r", '<br>', $html);
 
-   #TODO: inhibit shacktags inside the code tag
+   $html = escapeTagsInsideCodeTag($html);
 
    $complexReplacements = array(
       # array(from-start-tag, from-end-tag, to-start-tag, to-end-tag)
@@ -167,4 +167,46 @@ function tagsToHtml($text)
    }
 
    return $html;
+}
+
+function escapeTagsInsideCodeTag($orig)
+{
+   $inCodeTag = false;
+   $len = strlen($orig);
+   $newStr = '';
+   for ($i = 0; $i < $len; $i++)
+   {
+      $tag = substr($orig, $i, 3);
+      $ch = $orig[$i];
+      if (!$inCodeTag && $tag == '/{{')
+      {
+         $newStr .= $tag;
+         $inCodeTag = true;
+         $i += 2;
+      }
+      else if ($inCodeTag && $tag == '}}/')
+      {
+         $newStr .= $tag;
+         $inCodeTag = false;
+         $i += 2;
+      }
+      else if ($inCodeTag)
+      {
+         if ($ch == '[')
+            $newStr .= '&lsqb;';
+         else if ($ch == ']')
+            $newStr .= '&rsqb;';
+         else if ($ch == '{')
+            $newStr .= '&lcub;';
+         else if ($ch == '}')
+            $newStr .= '&rcub;';
+         else
+            $newStr .= $ch;
+      }
+      else
+      {
+         $newStr .= $ch;
+      }
+   }
+   return $newStr;
 }
