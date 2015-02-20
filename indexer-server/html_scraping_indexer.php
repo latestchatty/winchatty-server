@@ -167,8 +167,6 @@ function startIndex() # void
          // Comment this if indexing old posts is enabled above.
          sleep(1);
       }
-
-      generateFrontPageFile($pg);
    }
    catch (Exception $e)
    {
@@ -755,29 +753,6 @@ function getThread($id, $useCache = true) # thread object
 
    $thread['replies'] = $threadReplies;
    return $thread;
-}
-
-function generateFrontPageFile($pg)
-{
-   global $totalPostsIndexed;
-   $frontPageDataFilePath = search_data_directory . 'FrontPageData';
-   $diskFreeBytes = intval(`/bin/df | /bin/grep sdd1 | /usr/bin/awk '{ print $4 }'`);
-
-   $data = array(
-      'thread_count'       => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM thread', array()),
-      'post_count'         => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM post', array()),
-      'nuked_post_count'   => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM nuked_post', array()),
-      'pending_nuke_count' => 0, #selectValueOrThrow($pg, 'SELECT COUNT(*) FROM nuked_post WHERE reattempts < 1', array()),
-      'oldest_post_date'   => 0, #strtotime($oldestDate),
-      'newest_post_date'   => 0, #strtotime($newestDate),
-      'database_size'      => selectValueOrThrow($pg, "SELECT pg_catalog.pg_database_size(d.datname) AS Size FROM pg_catalog.pg_database d WHERE d.datname = 'chatty'", array()),
-      'disk_free'          => $diskFreeBytes,
-      'last_index'         => time(),
-      'last_index_count'   => $totalPostsIndexed,
-      'total_time_sec'     => TOTAL_TIME_SEC,
-      'uptime'             => `/usr/bin/uptime`
-   );
-   file_put_contents($frontPageDataFilePath, serialize($data));
 }
 
 function logPostEdit($pg, $id, $categoryInt)

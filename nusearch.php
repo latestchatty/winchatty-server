@@ -16,7 +16,6 @@
 require_once 'include/Global.php';
 
 $model = array();
-
 $model['terms'] = isset($_GET['q']) ? trim($_GET['q']) : '';
 $model['author'] = isset($_GET['a']) ? trim($_GET['a']) : '';
 $model['parentAuthor'] = isset($_GET['pa']) ? trim($_GET['pa']) : '';
@@ -25,60 +24,6 @@ $model['home'] = $model['terms'] == '' &&
                  $model['author'] == '' &&
                  $model['parentAuthor'] == '' &&
                  $model['category'] == '';
-
-$defaultUptime = ' 14:23:24 up 1 day, 49 min,  1 user,  load average: 1.65, 2.42, 2.16';
-
-if ($model['home'])
-{
-   $frontPageDataFilePath = search_data_directory . 'FrontPageData';
-   if (file_exists($frontPageDataFilePath))
-      $data = unserialize(file_get_contents($frontPageDataFilePath));
-   else
-      $data = array(
-         'thread_count'       => 0,
-         'post_count'         => 0,
-         'nuked_post_count'   => 0,
-         'pending_nuke_count' => 0,
-         'oldest_post_date'   => '2013-01-01',
-         'newest_post_date'   => '2013-01-01',
-         'database_size'      => 0,
-         'disk_free'          => 0,
-         'last_index'         => '2013-01-01',
-         'last_index_count'   => 0,
-         'total_time_sec'     => 270,
-         'uptime'             => $defaultUptime
-      );
-
-   $model['lastIndexResult'] = sprintf("%s new posts",
-      number_format($data['last_index_count']));
-
-   #$model['postCount'] = intval($data['post_count']);
-   #$model['threadCount'] = intval($data['thread_count']);
-   #$model['nukeCount'] = intval($data['nuked_post_count']);
-   #$model['pendingCount'] = intval($data['pending_nuke_count']);
-   #$model['lowestDate'] = date('M j, Y g:i A', $data['oldest_post_date']);
-   #$model['highestDate'] = date('F j, Y', $data['newest_post_date']);
-   $model['databaseSize'] = intval($data['database_size']) / 1073741824.0;
-   $model['freeSpace'] = intval($data['disk_free']) / 1048576.0;
-   $secondsAgo = time() - $data['last_index'];
-   $lastIndexStr = date('g:i A', $data['last_index']);
-   if ($secondsAgo < 60)
-      $model['lastIndex'] = "$lastIndexStr (&lt; 1 minute ago)";
-   else
-   {
-      $minutesAgo = floor($secondsAgo / 60.0);
-      if ($minutesAgo == 1)
-         $model['lastIndex'] = "$lastIndexStr (1 minute ago)"; 
-      else if ($minutesAgo < 60)
-         $model['lastIndex'] = "$lastIndexStr ($minutesAgo minutes ago)"; 
-      else
-         $model['lastIndex'] = "$lastIndexStr"; 
-   }
-}
-
-$loadArray = explode("load average:", isset($data['uptime']) ? $data['uptime'] : $defaultUptime);
-$load = trim($loadArray[1]);
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -139,25 +84,6 @@ $load = trim($loadArray[1]);
             <li><a class="link" href="//s3.amazonaws.com/winchatty/WinChatty-3.1.air">Install the WinChatty desktop 
                client</a> (obsolete; requires <a class="link" href="http://get.adobe.com/air">Adobe AIR</a>)</li>
          </ul>
-         <br>
-         <table id="stats">
-            <tr>
-               <td>Last cycle ended:</td>
-               <td><?=$model['lastIndex']?></td>
-            </tr>
-            <tr>
-               <td>Last cycle result:</td>
-               <td><?=$model['lastIndexResult']?></td>
-            </tr>
-            <tr>
-               <td>Database size:</td>
-               <td><?=number_format($model['databaseSize'], 1)?> GB</td>
-            </tr>
-            <tr>
-               <td>Load averages:</td>
-               <td><?=$load?></td>
-            </tr>
-         </table>
       </div>
 
       <? } else { ?>
