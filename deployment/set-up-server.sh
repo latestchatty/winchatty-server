@@ -74,8 +74,9 @@ mkdir /home/chatty
 pushd /home/chatty
 chown $OWNER:www-data .
 sudo -H -u $OWNER git clone --recursive git://github.com/electroly/winchatty-server.git backend
-sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
 sudo -u $OWNER mkdir backend-data
+sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
+sudo -u $OWNER mkdir search-data
 sudo -H -u $OWNER git clone --recursive git://github.com/NiXXeD/chatty.git frontend
 popd
 
