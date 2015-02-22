@@ -8,10 +8,10 @@
 #<UDF name="end_id" label="Last ID to index">
 # ENDID=
 #
-#<UDF name="s3_accesskey" label="S3 access key (with slashes escaped)">
+#<UDF name="s3_accesskey" label="S3 access key (with / slashes double-escaped)">
 # ACCESSKEY=
 #
-#<UDF name="s3_secretkey" label="S3 secret key (with slashes escaped)">
+#<UDF name="s3_secretkey" label="S3 secret key (with / slashes double-escaped)">
 # SECRETKEY=
 #
 #<UDF name="s3_bucket" label="S3 bucket">
