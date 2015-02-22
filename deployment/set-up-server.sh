@@ -46,6 +46,8 @@
 #
 #######################################################################################################################
 
+export DUMP_FILE=chatty-blank.sql.gz
+
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
 if [ -z "$OWNER" ]; then echo "Missing OWNER."; exit 1; fi
 if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
