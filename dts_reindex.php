@@ -32,11 +32,13 @@ while ($any)
       "SELECT p.id, p.body, p.author, COALESCE(p2.author, ''), p.category " .
       'FROM post p ' .
       'LEFT JOIN post p2 ON p.parent_id = p2.id ' .
-      'WHERE p.id >= $1 ' .
+      'WHERE p.id > $1 ' .
       'ORDER BY p.id ' .
       'LIMIT $2',
       array($chunkStart, $chunkLen));
    $any = false;
+   $firstId = 0;
+   $lastId = 0;
    foreach ($rs as $row) 
    {
       $any = true;
@@ -47,7 +49,10 @@ while ($any)
       $category = intval($row[4]);
 
       dts_index($id, $body, $author, $parentAuthor, $category);
-      echo "Indexed $id\n";
+      if ($firstId == 0)
+         $firstId = $id;
+      $lastId = $id;
    }
-   $chunkStart += $chunkLen;
+   echo "Indexed $firstId ... $lastId\n";
+   $chunkStart = $lastId;
 }

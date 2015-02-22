@@ -50,7 +50,7 @@ function dts_index($id, $body, $author, $parentAuthor, $categoryNum)
 {
    $result = dts_httpPost("http://127.0.0.1:8081/index", array(
       'id' => intval($id),
-      'text' => strval($body),
+      'text' => strval(html_entity_decode(strip_tags($body))),
       'a' => strval($author),
       'pa' => strval($parentAuthor),
       'c' => intval($categoryNum)
