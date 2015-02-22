@@ -25,8 +25,15 @@ $pg = nsc_connectToDatabase();
 $chunkStart = 0;
 $chunkLen = 100;
 $any = true;
+$lastId = 0;
+$endId = 10000;
 
-while ($any)
+if (file_exists('/tmp/dts-start'))
+   $chunkStart = intval(file_get_contents('/tmp/dts-start'));
+if (file_exists('/tmp/dts-end'))
+   $endId = intval(file_get_contents('/tmp/dts-end'));
+
+while ($any && $lastId < $endId)
 {
    $rs = nsc_query($pg, 
       "SELECT p.id, p.body, p.author, COALESCE(p2.author, ''), p.category " .
@@ -43,6 +50,8 @@ while ($any)
    {
       $any = true;
       $id = intval($row[0]);
+      if ($id > $endId)
+         break;
       $body = strval($row[1]);
       $author = strval($row[2]);
       $parentAuthor = strval($row[3]);
