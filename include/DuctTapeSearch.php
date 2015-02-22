@@ -24,7 +24,7 @@ function dts_httpPost($url, $args)
    curl_setopt($curl, CURLOPT_POST, true);
    curl_setopt($curl, CURLOPT_POSTFIELDS, $query);
    $raw_response = curl_exec($curl);
-   $http_status = curl_getinfo($http, CURLINFO_HTTP_CODE);
+   $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
    if ($http_status == '200')
    {
       if (is_null($raw_response) || empty($raw_response))
@@ -65,7 +65,7 @@ function dts_search($terms, $author, $parentAuthor, $categoryNum, $skip, $take, 
    $result = dts_httpPost("http://127.0.0.1:8081/search", array(
       'q' => strval($terms),
       'a' => strval($author),
-      'pa' => strval($parentAuthor)
+      'pa' => strval($parentAuthor),
       'skip' => intval($skip),
       'take' => intval($take),
       'desc' => $desc ? 1 : 0

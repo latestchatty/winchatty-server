@@ -108,7 +108,7 @@ function processNewPost($pg, $queueId, $username, $parentId, $taggedBody) # retu
          if ($parentId !== 0) 
             $parentAuthor = strval(nsc_selectValue($pg, 'SELECT author FROM post WHERE id = $1', array($parentId)));
 
-         dts_index($id, $body, $username, $parentAuthor, 
+         dts_index($id, $body, $username, $parentAuthor, 1);
       }
       catch (Exception $e)
       {

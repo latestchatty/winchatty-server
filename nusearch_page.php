@@ -101,18 +101,22 @@ if ($pg === false)
 $sql = false;
 $args = array();
 $results = array();
+$none = false;
+$limit = 35;
 
 if (V2_SEARCH_ENGINE == 'duct-tape')
 {
    $ids = dts_search($model['terms'], $model['author'], $model['parentAuthor'], 
-      empty($model['category']) ? 0 : $model['category'], $model['offset'], 35, true);
+      empty($model['category']) ? 0 : $model['category'], $model['offset'], $limit, true);
 
-   $sql = 'SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body ' .
-          'FROM post WHERE post.id IN (' . implode(',', $ids) . ')';
+   if (empty($ids))
+      $none = true;
+   else
+      $sql = 'SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body ' .
+         'FROM post WHERE post.id IN (' . implode(',', $ids) . ') ORDER BY post.id DESC';
 }
 else
 {
-   $limit = 35;
    $offset = $model['offset'];
    $sql = "SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body FROM post ";
    $where = '';
@@ -180,25 +184,28 @@ else
    $args[] = $offset;
 }
 
-$rs = pg_query_params($pg, $sql, $args);
-if ($rs === false)
-   die('Failed to execute SQL query: ' . $sql);
-
-while (true)
+if (!$none)
 {
-   $row = pg_fetch_row($rs);
-   if ($row === false)
-      break;
+   $rs = pg_query_params($pg, $sql, $args);
+   if ($rs === false)
+      die('Failed to execute SQL query: ' . $sql);
 
-   $results[] = array(
-      'id' => $row[0],
-      'thread_id' => $row[1],
-      'parent_id' => $row[2],
-      'author' => $row[3],
-      'category' => $row[4],
-      'date' => $row[5],
-      'body' => $row[6]
-   );
+   while (true)
+   {
+      $row = pg_fetch_row($rs);
+      if ($row === false)
+         break;
+
+      $results[] = array(
+         'id' => $row[0],
+         'thread_id' => $row[1],
+         'parent_id' => $row[2],
+         'author' => $row[3],
+         'category' => $row[4],
+         'date' => $row[5],
+         'body' => $row[6]
+      );
+   }
 }
 
 pg_close($pg);
