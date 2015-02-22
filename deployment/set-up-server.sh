@@ -28,6 +28,7 @@
 #   winchatty-indexer       (Synchronizes the database with the Shack, does not listen on any ports)
 #   winchatty-push-server   (Main web server, running on port 80)
 #   winchatty-notify-server (Push notification producer, does not listen on any ports)
+#   winchatty-search        (Full text indexer, running on port 8081)
 #
 # Standard services:
 #   apache2                 (Web server for WinChatty API, running on port 81)
@@ -38,6 +39,7 @@
 #   log-indexer             (Output of the winchatty-indexer service)
 #   log-push-server         (Output of the winchatty-push-server service)
 #   log-notify-server       (Output of the winchatty-notify-server service)
+#   log-search              (Output of the winchatty-search service)
 #   log-apache              (apache2 access log)
 #   log-apache-error        (apache2 error log)
 #   log-all                 (The last 10 lines from each log file)
@@ -72,6 +74,7 @@ mkdir /home/chatty
 pushd /home/chatty
 chown $OWNER:www-data .
 sudo -H -u $OWNER git clone --recursive git://github.com/electroly/winchatty-server.git backend
+sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
 sudo -u $OWNER mkdir backend-data
 sudo -H -u $OWNER git clone --recursive git://github.com/NiXXeD/chatty.git frontend
 popd
@@ -118,6 +121,11 @@ sudo -u $OWNER touch /mnt/ssd/ChattyIndex/ForceReadNewPosts
 chmod a+rw /mnt/ssd/ChattyIndex/ForceReadNewPosts
 sudo -u $OWNER echo 0 > /mnt/ssd/ChattyIndex/LastEventID
 
+pushd /home/chatty/search
+sudo -H -u $OWNER make
+make install
+popd
+
 pushd /home/chatty/backend/deployment
 sed "s/'UTC'/'America\/Chicago'/g" /etc/postgresql/*/main/postgresql.conf > /tmp/postgresql.conf.new
 mv -f /tmp/postgresql.conf.new /etc/postgresql/*/main/postgresql.conf
@@ -135,6 +143,7 @@ cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-push-server.conf > /etc/init/winchatty-push-server.conf
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-notify-server.conf > /etc/init/winchatty-notify-server.conf
+sed "s/USERNAME/$OWNER/g" upstart/winchatty-search.conf > /etc/init/winchatty-search.conf
 cp -f bin/log-apache /usr/bin/
 cp -f bin/log-apache-error /usr/bin/
 cp -f bin/log-indexer /usr/bin/
