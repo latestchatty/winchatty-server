@@ -85,7 +85,7 @@ echo "<?" > ConfigUserPass.php
 echo "define('WINCHATTY_USERNAME', '$SHACK_USERNAME');" >> ConfigUserPass.php
 echo "define('WINCHATTY_PASSWORD', '$SHACK_PASSWORD');" >> ConfigUserPass.php
 chown $OWNER:www-data ConfigUserPass.php
-sed "s/html_scraping_indexer/solo_indexer/g" Config.php > Config.php.new
+sed "s/html_scraping_indexer/solo_indexer/g" Config.php | sed "s/pgsql-search/duct-tape/g" > Config.php.new
 mv -f Config.php.new Config.php
 chown $OWNER:www-data Config.php
 popd
@@ -123,7 +123,6 @@ chmod a+rw /mnt/ssd/ChattyIndex/ForceReadNewPosts
 sudo -u $OWNER echo 0 > /mnt/ssd/ChattyIndex/LastEventID
 
 pushd /home/chatty/search
-sudo -H -u $OWNER make
 make install
 popd
 
@@ -148,6 +147,7 @@ sed "s/USERNAME/$OWNER/g" upstart/winchatty-search.conf > /etc/init/winchatty-se
 cp -f bin/log-apache /usr/bin/
 cp -f bin/log-apache-error /usr/bin/
 cp -f bin/log-indexer /usr/bin/
+cp -f bin/log-search /usr/bin/
 cp -f bin/log-push-server /usr/bin/
 cp -f bin/log-notify-server /usr/bin/
 cp -f bin/log-all /usr/bin/

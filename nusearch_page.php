@@ -82,7 +82,6 @@ foreach ($termsChars as $ch)
 #foreach ($quotedStrings as $quotedString)
 #   $model['terms'] = trim(str_replace('"' . $quotedString . '"', '', $model['terms']));
 
-
 $categoryStr = $model['category'];
 $category = false;
 switch ($model['category'])
@@ -99,79 +98,92 @@ $model['category'] = $category;
 $pg = nsc_connectToDatabase();
 if ($pg === false)
    die('Failed to connect to chatty database.');
-
-$limit = 35;
-$offset = $model['offset'];
-$sql = "SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body FROM post ";
-$where = '';
+$sql = false;
 $args = array();
-$num = 1;
-$prev = false;
-$join = '';
+$results = array();
 
-if ($model['terms'] != '')
+if (V2_SEARCH_ENGINE == 'duct-tape')
 {
-   if ($prev)
-      $where .= " AND ";
-   $where .= " post_index.body_c_ts @@ plainto_tsquery('english', " . '$' . $num++ . ") ";
-   $join .= ' INNER JOIN post_index ON post.id = post_index.id ';
-   $args[] = $model['terms'];
-   $prev = true;
-}
+   $ids = dts_search($model['terms'], $model['author'], $model['parentAuthor'], 
+      empty($model['category']) ? 0 : $model['category'], $model['offset'], 35, true);
 
-if ($model['author'] != '')
+   $sql = 'SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body ' .
+          'FROM post WHERE post.id IN (' . implode(',', $ids) . ')';
+}
+else
 {
-   if ($prev)
-      $where .= " AND ";
-   $where .= ' post.author_c = $' . $num++ . ' ';
-   $args[] = strtolower($model['author']);
-   $prev = true;
-}
+   $limit = 35;
+   $offset = $model['offset'];
+   $sql = "SELECT post.id, post.thread_id, post.parent_id, post.author, post.category, post.date, post.body FROM post ";
+   $where = '';
+   $args = array();
+   $num = 1;
+   $prev = false;
+   $join = '';
 
-if ($model['parentAuthor'] != '')
-{
-   if ($prev)
-      $where .= " AND ";
-   $sql .= ' INNER JOIN post AS post2 ON post.parent_id = post2.id ';
-   $where .= ' post2.author_c = $' . $num++ . ' ';
-   $args[] = strtolower($model['parentAuthor']);
-   $prev = true;
-}
+   if ($model['terms'] != '')
+   {
+      if ($prev)
+         $where .= " AND ";
+      $where .= " post_index.body_c_ts @@ plainto_tsquery('english', " . '$' . $num++ . ") ";
+      $join .= ' INNER JOIN post_index ON post.id = post_index.id ';
+      $args[] = $model['terms'];
+      $prev = true;
+   }
 
-if ($model['category'] !== false)
-{
-   if ($prev)
-      $where .= " AND ";
-   $where .= ' post.category = $' . $num++ . ' ';
-   $args[] = intval($model['category']);
-   $prev = true;
-}
+   if ($model['author'] != '')
+   {
+      if ($prev)
+         $where .= " AND ";
+      $where .= ' post.author_c = $' . $num++ . ' ';
+      $args[] = strtolower($model['author']);
+      $prev = true;
+   }
 
-foreach ($quotedStrings as $quotedString)
-{
-   die('<div style="text-align: center; color: red; font-style: italic;">Quoted string searches are disabled for now. -electroly &hearts;</div>');
-   if ($prev)
-      $where .= " AND ";
-   $where .= ' post.body_c LIKE $' . $num++ . ' ';
-   $s = strtolower($quotedString);
-   $s = str_replace('_', "\\_", $s); # not used as wildcard here
-   $s = str_replace('%', "\\%", $s); # not used as wildcard here
-   $args[] = '%' . $s . '%';
-   $prev = true;
-}
+   if ($model['parentAuthor'] != '')
+   {
+      if ($prev)
+         $where .= " AND ";
+      $sql .= ' INNER JOIN post AS post2 ON post.parent_id = post2.id ';
+      $where .= ' post2.author_c = $' . $num++ . ' ';
+      $args[] = strtolower($model['parentAuthor']);
+      $prev = true;
+   }
 
-$sql .= $join;
-$sql .= ' WHERE ' . $where;
-$sql .= ' ORDER BY post.id DESC LIMIT $' . $num++;
-$sql .= ' OFFSET $' . $num++;
-$args[] = $limit;
-$args[] = $offset;
+   if ($model['category'] !== false)
+   {
+      if ($prev)
+         $where .= " AND ";
+      $where .= ' post.category = $' . $num++ . ' ';
+      $args[] = intval($model['category']);
+      $prev = true;
+   }
+
+   foreach ($quotedStrings as $quotedString)
+   {
+      die('<div style="text-align: center; color: red; font-style: italic;">Quoted string searches are disabled for now. -electroly &hearts;</div>');
+      if ($prev)
+         $where .= " AND ";
+      $where .= ' post.body_c LIKE $' . $num++ . ' ';
+      $s = strtolower($quotedString);
+      $s = str_replace('_', "\\_", $s); # not used as wildcard here
+      $s = str_replace('%', "\\%", $s); # not used as wildcard here
+      $args[] = '%' . $s . '%';
+      $prev = true;
+   }
+
+   $sql .= $join;
+   $sql .= ' WHERE ' . $where;
+   $sql .= ' ORDER BY post.id DESC LIMIT $' . $num++;
+   $sql .= ' OFFSET $' . $num++;
+   $args[] = $limit;
+   $args[] = $offset;
+}
 
 $rs = pg_query_params($pg, $sql, $args);
 if ($rs === false)
    die('Failed to execute SQL query: ' . $sql);
 
-$results = array();
 while (true)
 {
    $row = pg_fetch_row($rs);

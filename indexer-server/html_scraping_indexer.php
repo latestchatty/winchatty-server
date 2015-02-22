@@ -555,7 +555,14 @@ function indexThread($pg, $id, $thread) # bool - whether $id was found among $th
 
 function updateIndexForPost($pg, $id, $bodyC)
 {
-   executeOrThrow($pg, 'INSERT INTO post_index (id, body_c_ts) VALUES ($1, to_tsvector($2))', array($id, $bodyC));
+   if (V2_SEARCH_ENGINE == 'duct-tape') 
+   {
+      dts_index($id, $bodyC);
+   }
+   else
+   {
+      executeOrThrow($pg, 'INSERT INTO post_index (id, body_c_ts) VALUES ($1, to_tsvector($2))', array($id, $bodyC));
+   }
 }
 
 function isPostIndexed($pg, $id) # bool

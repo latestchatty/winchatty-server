@@ -22,3 +22,4 @@ define('V2_CONNECTION_STRING', 'hostaddr=127.0.0.1 port=6432 dbname=chatty user=
 define('V2_DATA_PATH', '/mnt/ssd/ChattyIndex/'); # must have trailing slash. must already exist.
 define('V2_ADMIN_USERNAME', 'electroly'); # this person is allowed to use /v2/broadcastServerMessage
 define('V2_INDEXER_SCRIPT', 'html_scraping_indexer.php'); # script must be in the indexer-server/ folder
+define('V2_SEARCH_ENGINE', 'pgsql-search'); # 'duct-tape' or 'pgsql-search'

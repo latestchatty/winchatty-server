@@ -100,7 +100,25 @@ function processNewPost($pg, $queueId, $username, $parentId, $taggedBody) # retu
       'VALUES ($1, $2, $3, $4, 1, NOW(), $5, $6, $7)', array(
       $id, $threadId, $parentId, $username, $body, strtolower($username), $bodyC));
 
-   nsc_execute($pg, 'INSERT INTO post_index (id, body_c_ts) VALUES ($1, to_tsvector($2))', array($id, $bodyC));
+   if (V2_SEARCH_ENGINE == 'duct-tape') 
+   {
+      try
+      {
+         $parentAuthor = '';
+         if ($parentId !== 0) 
+            $parentAuthor = strval(nsc_selectValue($pg, 'SELECT author FROM post WHERE id = $1', array($parentId)));
+
+         dts_index($id, $body, $username, $parentAuthor, 
+      }
+      catch (Exception $e)
+      {
+         echo 'Error indexing post: ' . $e->getMessage() . "\n";
+      }
+   }
+   else
+   {
+      nsc_execute($pg, 'INSERT INTO post_index (id, body_c_ts) VALUES ($1, to_tsvector($2))', array($id, $bodyC));
+   }
 
    return $id;
 }
