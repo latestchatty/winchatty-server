@@ -22,6 +22,8 @@ if [ -z "$SECRETKEY" ]; then echo "Missing SECRETKEY."; exit 1; fi
 if [ -z "$BUCKET" ]; then echo "Missing BUCKET."; exit 1; fi
 if [ -z "$PGSQLBACKUPNAME" ]; then echo "Missing PGSQLBACKUPNAME."; exit 1; fi
 
+set -x
+
 apt-get -y install apache2 libdigest-hmac-perl unzip apache2-utils s3cmd
 cd /tmp
 

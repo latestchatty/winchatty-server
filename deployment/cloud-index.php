@@ -25,6 +25,9 @@ file_put_contents('/root/.s3cfg',
 $accesskey = str_replace('/', "\\/", trim($accesskey));
 $secretkey = str_replace('/', "\\/", trim($secretkey));
 
+$rootpass = uniqid();
+echo "Using newly generated password: $rootpass\n";
+
 function linode_api($method, $args) {
    global $api_key;
    $args['api_key'] = $api_key;
@@ -43,6 +46,7 @@ function linode_api($method, $args) {
 function create_linode($label, $stackscript_id, $stackscript_args) {
    global $datacenter_id;
    global $distribution_id;
+   global $kernel_id;
 
    # create the virtual machine
    $create_result = linode_api('linode.create', array(
@@ -71,7 +75,7 @@ function create_linode($label, $stackscript_id, $stackscript_args) {
       'StackScriptUDFResponses' => json_encode($stackscript_args),
       'Label' => 'disk',
       'Size' => 24000,
-      'rootPass' => uniqid()));
+      'rootPass' => $rootpass));
 
    $disk_id = $disk_result['DATA']['DiskID'];
 
@@ -92,8 +96,7 @@ function create_linode($label, $stackscript_id, $stackscript_args) {
    linode_api('linode.boot', array(
       'LinodeID' => $linode_id));
 
-   return array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
-      'disk_id' => $disk_id, 'swap_id' => $swap_id);
+   return array('id' => $linode_id, 'disk_id' => $disk_id, 'swap_id' => $swap_id);
 }
 
 function wait_until_booted($linode_id) {
@@ -116,7 +119,7 @@ $kernel_id = 138; # Latest 64 bit (3.18.5-x86_64-linode52)
 $datacenter_id = 6; # Newark, NJ, USA
 
 $ranges = array(
-   array(    0,  9999)/*,
+   array(    0,  9999),
    array(10000, 19999),
    array(20000, 29999),
    array(30000, 39999),
@@ -125,29 +128,33 @@ $ranges = array(
    array(60000, 69999),
    array(70000, 79999),
    array(80000, 89999),
-   array(90000, 99999),*/
+   array(90000, 99999)
 );
 
-$http_pass = uniqid();
+system("s3cmd del s3://$bucket/winchatty_filehost_url");
 
 echo "Creating linode to host the database dump...\n";
 $filehost_linode = create_linode('wc_idx_filehost', $filehost_stackscript_id, array(
-   'ACCESSKEY' => strval($accesskey),
-   'SECRETKEY' => strval($secretkey),
-   'BUCKET' => strval($bucket),
-   'PGSQLBACKUPNAME' => strval($pg_backup_filename),
-   'HTTPPASS' => $http_pass));
+   'ACCESSKEY' => trim($accesskey),
+   'SECRETKEY' => trim($secretkey),
+   'BUCKET' => trim($bucket),
+   'PGSQLBACKUPNAME' => trim($pg_backup_filename),
+   'HTTPPASS' => trim($rootpass)));
 wait_until_booted($filehost_linode['id']);
 echo "File host has booted.\n";
 
 # filehost will put "winchatty_filehost_url" in the bucket when it's ready to serve the file
-if (file_exists('/tmp/winchatty_filehost_url'))
-   unlink('/tmp/winchatty_filehost_url');
-while (!file_exists('/tmp/winchatty_filehost_url')) {
-   system("s3cmd get s3://$bucket/winchatty_filehost_url /tmp/winchatty_filehost_url >/dev/null 2>/dev/null");
-   sleep(5);
+$filehost_url_file = '/tmp/winchatty_filehost_url';
+$filehost_url = '';
+while (strlen($filehost_url) < 5 || substr($filehost_url, 0, 4) != 'http') {
+   sleep(15);
+   if (file_exists($filehost_url_file))
+      unlink($filehost_url_file);
+   system("s3cmd get s3://$bucket/winchatty_filehost_url $filehost_url_file 2>/dev/null");
+   if (file_exists($filehost_url_file))
+      $filehost_url = trim(file_get_contents($filehost_url_file));
 }
-$filehost_url = file_get_contents('/tmp/winchatty_filehost_url');
+echo "File host is ready: $filehost_url\n";
 
 $linodes = array(); # array of array('id' => <linode_id>, 'start_id' => 1, 'end_id' => 1000, 'status' => 1), ...
 
@@ -160,14 +167,13 @@ foreach ($ranges as $range) {
    $linode = create_linode('wc_idx_' . $start_id, $index_stackscript_id, array(
       'STARTID' => intval($start_id),
       'ENDID' => intval($end_id),
-      'ACCESSKEY' => strval($accesskey),
-      'SECRETKEY' => strval($secretkey),
-      'BUCKET' => strval($bucket),
-      'PGSQLBACKUPURL' => strval($filehost_url),
-      'PGSQLBACKUPPASS' => strval($http_pass)));
+      'ACCESSKEY' => trim($accesskey),
+      'SECRETKEY' => trim($secretkey),
+      'BUCKET' => trim($bucket),
+      'PGSQLBACKUPURL' => trim($filehost_url),
+      'PGSQLBACKUPPASS' => trim($rootpass)));
 
-   $linodes[$linode_id] = array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
-      'disk_id' => $disk_id, 'swap_id' => $swap_id);
+   $linodes[$linode['id']] = $linode;
 }
 
 foreach ($linodes as $linode) {
@@ -205,7 +211,29 @@ while (true) {
 
 echo "\n";
 
-echo "Sending command to delete all disks...\n";
+echo "Shutting down filehost node...\n";
+
+# tell the filehost to shut down, then add it to the list of linodes to be deleted
+linode_api('linode.shutdown', array(
+   'LinodeID' => $filehost_linode['id']));
+$linodes[$filehost_linode['id']] = $filehost_linode;
+
+# wait for all linodes to be powered off
+while (true) {
+   $list_result = linode_api('linode.list', array());
+   $any_on = false;
+   foreach ($list_result['DATA'] as $vm)
+      if (isset($linodes[intval($vm['LINODEID'])]))
+         if ($vm['STATUS'] == 1)
+            $any_on = true;
+
+   if (!$any_on)
+      break;
+
+   sleep(5);
+}
+
+echo "Sending commands to delete all disks...\n";
 
 # delete the instances
 foreach ($linodes as $linode) {
@@ -238,6 +266,8 @@ foreach ($linodes as $linode) {
 echo "Downloading results...\n";
 
 # download the files they uploaded to the s3 bucket
+if (file_exists('/tmp/winchatty-cloud-index'))
+   system('rm -rf /tmp/winchatty-cloud-index');
 mkdir('/tmp/winchatty-cloud-index/');
 foreach ($ranges as $range) {
    $min_id = $range[0];
@@ -252,3 +282,6 @@ foreach ($ranges as $range) {
 }
 
 echo "Done.\n";
+
+system('ping -c 5 127.0.0.1 >/dev/null');
+

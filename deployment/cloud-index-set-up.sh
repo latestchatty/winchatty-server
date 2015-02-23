@@ -36,6 +36,8 @@ if [ -z "$BUCKET" ]; then echo "Missing BUCKET."; exit 1; fi
 if [ -z "$PGSQLBACKUPURL" ]; then echo "Missing PGSQLBACKUPURL."; exit 1; fi
 if [ -z "$PGSQLBACKUPPASS" ]; then echo "Missing PGSQLBACKUPPASS."; exit 1; fi
 
+set -x
+
 cd /tmp
 
 apt-get update
