@@ -40,31 +40,9 @@ function linode_api($method, $args) {
       return $result;
 }
 
-$stackscript_id = 11509; # brianluft/winchatty-index-node
-$distribution_id = 124; # Ubuntu 14.04 LTS
-$kernel_id = 138; # Latest 64 bit (3.18.5-x86_64-linode52)
-$datacenter_id = 6; # Newark, NJ, USA
-
-$ranges = array(
-   array(    0,  9999),
-   array(10000, 19999),
-   array(20000, 29999),
-   array(30000, 39999),
-   array(40000, 49999),
-   array(50000, 59999),
-   array(60000, 69999),
-   array(70000, 79999),
-   array(80000, 89999),
-   array(90000, 99999),
-);
-
-$linodes = array(); # array of array('id' => <linode_id>, 'start_id' => 1, 'end_id' => 1000, 'status' => 1), ...
-
-foreach ($ranges as $range) {
-   $start_id = $range[0];
-   $end_id = $range[1];
-
-   echo "Creating linode for range $start_id to $end_id...\n";
+function create_linode($label, $stackscript_id, $stackscript_args) {
+   global $datacenter_id;
+   global $distribution_id;
 
    # create the virtual machine
    $create_result = linode_api('linode.create', array(
@@ -78,7 +56,7 @@ foreach ($ranges as $range) {
 
    linode_api('linode.update', array(
       'LinodeID' => $linode_id,
-      'Label' => 'wc_idx_' . $start_id . '_' . $linode_id,
+      'Label' => $label . '_li' . $linode_id,
       'lpm_displayGroup' => 'wc_idx',
       'Alert_cpu_enabled' => 0,
       'Alert_diskio_enabled' => 0,
@@ -90,16 +68,10 @@ foreach ($ranges as $range) {
       'LinodeID' => $linode_id,
       'DistributionID' => $distribution_id,
       'StackScriptID' => $stackscript_id,
-      'StackScriptUDFResponses' => json_encode(array(
-         'STARTID' => intval($start_id),
-         'ENDID' => intval($end_id),
-         'ACCESSKEY' => strval($accesskey),
-         'SECRETKEY' => strval($secretkey),
-         'BUCKET' => strval($bucket),
-         'PGSQLBACKUPNAME' => strval($pg_backup_filename))),
+      'StackScriptUDFResponses' => json_encode($stackscript_args),
       'Label' => 'disk',
       'Size' => 24000,
-      'rootPass' => 'super_hard_password'));
+      'rootPass' => uniqid()));
 
    $disk_id = $disk_result['DATA']['DiskID'];
 
@@ -120,22 +92,86 @@ foreach ($ranges as $range) {
    linode_api('linode.boot', array(
       'LinodeID' => $linode_id));
 
-   $linodes[$linode_id] = array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
+   return array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
       'disk_id' => $disk_id, 'swap_id' => $swap_id);
 }
 
-foreach ($linodes as $linode) {
+function wait_until_booted($linode_id) {
    # wait for this instance to boot up
    $booted = false;
    while (!$booted) {
       $list_result = linode_api('linode.list', array());
       foreach ($list_result['DATA'] as $vm)
-         if ($vm['LINODEID'] == $linode['id'])
+         if ($vm['LINODEID'] == $linode_id)
             $booted = ($vm['STATUS'] == 1);
       if (!$booted)
          sleep(5);
    }
+}
 
+$index_stackscript_id = 11509; # brianluft/winchatty-index-node
+$filehost_stackscript_id = 11514; # brianluft/winchatty-filehost
+$distribution_id = 124; # Ubuntu 14.04 LTS
+$kernel_id = 138; # Latest 64 bit (3.18.5-x86_64-linode52)
+$datacenter_id = 6; # Newark, NJ, USA
+
+$ranges = array(
+   array(    0,  9999)/*,
+   array(10000, 19999),
+   array(20000, 29999),
+   array(30000, 39999),
+   array(40000, 49999),
+   array(50000, 59999),
+   array(60000, 69999),
+   array(70000, 79999),
+   array(80000, 89999),
+   array(90000, 99999),*/
+);
+
+$http_pass = uniqid();
+
+echo "Creating linode to host the database dump...\n";
+$filehost_linode = create_linode('wc_idx_filehost', $filehost_stackscript_id, array(
+   'ACCESSKEY' => strval($accesskey),
+   'SECRETKEY' => strval($secretkey),
+   'BUCKET' => strval($bucket),
+   'PGSQLBACKUPNAME' => strval($pg_backup_filename),
+   'HTTPPASS' => $http_pass));
+wait_until_booted($filehost_linode['id']);
+echo "File host has booted.\n";
+
+# filehost will put "winchatty_filehost_url" in the bucket when it's ready to serve the file
+if (file_exists('/tmp/winchatty_filehost_url'))
+   unlink('/tmp/winchatty_filehost_url');
+while (!file_exists('/tmp/winchatty_filehost_url')) {
+   system("s3cmd get s3://$bucket/winchatty_filehost_url /tmp/winchatty_filehost_url >/dev/null 2>/dev/null");
+   sleep(5);
+}
+$filehost_url = file_get_contents('/tmp/winchatty_filehost_url');
+
+$linodes = array(); # array of array('id' => <linode_id>, 'start_id' => 1, 'end_id' => 1000, 'status' => 1), ...
+
+foreach ($ranges as $range) {
+   $start_id = $range[0];
+   $end_id = $range[1];
+
+   echo "Creating linode for range $start_id to $end_id...\n";
+
+   $linode = create_linode('wc_idx_' . $start_id, $index_stackscript_id, array(
+      'STARTID' => intval($start_id),
+      'ENDID' => intval($end_id),
+      'ACCESSKEY' => strval($accesskey),
+      'SECRETKEY' => strval($secretkey),
+      'BUCKET' => strval($bucket),
+      'PGSQLBACKUPURL' => strval($filehost_url),
+      'PGSQLBACKUPPASS' => strval($http_pass)));
+
+   $linodes[$linode_id] = array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
+      'disk_id' => $disk_id, 'swap_id' => $swap_id);
+}
+
+foreach ($linodes as $linode) {
+   wait_until_booted($linode['id']);
    echo "Linode " . $linode['id'] . " has booted.\n";
 }
 

@@ -16,8 +16,11 @@
 #<UDF name="bucket" label="S3 bucket">
 # BUCKET=
 #
-#<UDF name="pgsqlbackupname" label="Name of the pgsql fs-level backup in the S3 bucket">
-# PGSQLBACKUPNAME=
+#<UDF name="pgsqlbackupurl" label="URL of the pgsql fs-level backup">
+# PGSQLBACKUPURL=
+#
+#<UDF name="pgsqlbackuppass" label="HTTP password for downloading the pgsql backup">
+# PGSQLBACKUPPASS=
 
 export OWNER=me
 export SHACK_USERNAME=unused
@@ -30,7 +33,8 @@ if [ -z "$ENDID" ]; then echo "Missing ENDID."; exit 1; fi
 if [ -z "$ACCESSKEY" ]; then echo "Missing ACCESSKEY."; exit 1; fi
 if [ -z "$SECRETKEY" ]; then echo "Missing SECRETKEY."; exit 1; fi
 if [ -z "$BUCKET" ]; then echo "Missing BUCKET."; exit 1; fi
-if [ -z "$PGSQLBACKUPNAME" ]; then echo "Missing PGSQLBACKUPNAME."; exit 1; fi
+if [ -z "$PGSQLBACKUPURL" ]; then echo "Missing PGSQLBACKUPURL."; exit 1; fi
+if [ -z "$PGSQLBACKUPPASS" ]; then echo "Missing PGSQLBACKUPPASS."; exit 1; fi
 
 cd /tmp
 
@@ -98,7 +102,7 @@ chmod 600 /root/.s3curl
 /etc/init.d/postgresql stop
 rm -rf /var/lib/postgresql/9.3/main/
 pushd /var/lib/postgresql/9.3/
-s3curl.pl --id=personal -- http://s3.amazonaws.com/$BUCKET/$PGSQLBACKUPNAME | tar zx
+curl -u "winchatty:$PGSQLBACKUPPASS" "$PGSQLBACKUPURL" | tar zx
 popd
 /etc/init.d/postgresql start
 /etc/init.d/pgbouncer start

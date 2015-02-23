@@ -30,7 +30,8 @@ unzip master.zip
 cp s3curl-master/s3curl.pl /usr/bin/
 chmod +x /usr/bin/s3curl.pl
 
-cat /home/chatty/backend/deployment/s3cmd/s3cfg | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" > /root/.s3cfg
+wget https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/s3cmd/s3cfg
+cat s3cfg | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" > /root/.s3cfg
 echo "%awsSecretAccessKeys = ( personal => { id => 'ACCESSKEY', key => 'SECRETKEY' } );" | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" | sed "s/\\\//g" > /root/.s3curl
 chmod 600 /root/.s3curl
 
