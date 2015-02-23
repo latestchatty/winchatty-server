@@ -9,6 +9,8 @@ $bucket = readline('S3 bucket: ');
 $pg_backup_filename = readline('Filename of pgsql fs-level backup in the S3 bucket: ');
    #todo: create this in this script automatically
 
+$start_time = time();
+
 if (!file_exists('/root/.linodecli/config'))
    die("/root/.linodecli/config does not exist; you must run 'linode configure' first.\n");
 
@@ -49,6 +51,11 @@ $ranges = array(
    array(20000, 29999),
    array(30000, 39999),
    array(40000, 49999),
+   array(50000, 59999),
+   array(60000, 69999),
+   array(70000, 79999),
+   array(80000, 89999),
+   array(90000, 99999),
 );
 
 $linodes = array(); # array of array('id' => <linode_id>, 'start_id' => 1, 'end_id' => 1000, 'status' => 1), ...
@@ -113,18 +120,23 @@ foreach ($ranges as $range) {
    linode_api('linode.boot', array(
       'LinodeID' => $linode_id));
 
+   $linodes[$linode_id] = array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
+      'disk_id' => $disk_id, 'swap_id' => $swap_id);
+}
+
+foreach ($linodes as $linode) {
    # wait for this instance to boot up
    $booted = false;
    while (!$booted) {
-      sleep(5);
       $list_result = linode_api('linode.list', array());
       foreach ($list_result['DATA'] as $vm)
-         if ($vm['LINODEID'] == $linode_id)
+         if ($vm['LINODEID'] == $linode['id'])
             $booted = ($vm['STATUS'] == 1);
+      if (!$booted)
+         sleep(5);
    }
 
-   $linodes[$linode_id] = array('id' => $linode_id, 'start_id' => $range[0], 'end_id' => $range[1],
-      'disk_id' => $disk_id, 'swap_id' => $swap_id);
+   echo "Linode " . $linode['id'] . " has booted.\n";
 }
 
 echo "Linode IDs: ";
@@ -134,7 +146,6 @@ foreach ($linodes as $linode) {
 echo "\n";
 
 # wait for the instances to shut themselves down
-$start_time = time();
 while (true) {
    $list_result = linode_api('linode.list', array());
    $num_total = 0;
@@ -158,10 +169,10 @@ while (true) {
 
 echo "\n";
 
+echo "Sending command to delete all disks...\n";
+
 # delete the instances
 foreach ($linodes as $linode) {
-   echo "Deleting linode " . $linode['id'] . "...\n";
-
    linode_api('linode.disk.delete', array(
       'LinodeID' => $linode['id'],
       'DiskID' => $linode['disk_id']));
@@ -169,7 +180,11 @@ foreach ($linodes as $linode) {
    linode_api('linode.disk.delete', array(
       'LinodeID' => $linode['id'],
       'DiskID' => $linode['swap_id']));
+}
 
+echo "Waiting for disks to finish deleting...\n";
+
+foreach ($linodes as $linode) {
    # wait for the disks to be deleted
    while (true) {
       $list_result = linode_api('linode.disk.list', array('LinodeID' => $linode['id']));
@@ -180,15 +195,17 @@ foreach ($linodes as $linode) {
 
    linode_api('linode.delete', array(
       'LinodeID' => $linode['id']));
+
+   echo "Deleted linode " . $linode['id'] . "\n";
 }
+
+echo "Downloading results...\n";
 
 # download the files they uploaded to the s3 bucket
 mkdir('/tmp/winchatty-cloud-index/');
 foreach ($ranges as $range) {
    $min_id = $range[0];
    $max_id = $range[1];
-
-   echo "Downloading results $min_id ... $max_id\n";
 
    system('s3cmd get ' .
       's3://' . $bucket . '/dts-index-chunk-' . $min_id . '.tar.gz ' .
