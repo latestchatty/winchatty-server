@@ -43,15 +43,16 @@ function linode_api($method, $args) {
       return $result;
 }
 
-function create_linode($label, $stackscript_id, $stackscript_args) {
+function create_linode($label, $plan_id, $stackscript_id, $stackscript_args) {
    global $datacenter_id;
    global $distribution_id;
    global $kernel_id;
+   global $rootpass;
 
    # create the virtual machine
    $create_result = linode_api('linode.create', array(
       'DatacenterID' => $datacenter_id,
-      'PlanID' => 1));
+      'PlanID' => $plan_id));
    if ($create_result === false)
       die('Unexpected result from linode.create.');
    $linode_id = intval($create_result['DATA']['LinodeID']);
@@ -134,7 +135,7 @@ $ranges = array(
 system("s3cmd del s3://$bucket/winchatty_filehost_url");
 
 echo "Creating linode to host the database dump...\n";
-$filehost_linode = create_linode('wc_idx_filehost', $filehost_stackscript_id, array(
+$filehost_linode = create_linode('wc_idx_filehost', 4, $filehost_stackscript_id, array(
    'ACCESSKEY' => trim($accesskey),
    'SECRETKEY' => trim($secretkey),
    'BUCKET' => trim($bucket),
@@ -164,7 +165,7 @@ foreach ($ranges as $range) {
 
    echo "Creating linode for range $start_id to $end_id...\n";
 
-   $linode = create_linode('wc_idx_' . $start_id, $index_stackscript_id, array(
+   $linode = create_linode('wc_idx_' . $start_id, 1, $index_stackscript_id, array(
       'STARTID' => intval($start_id),
       'ENDID' => intval($end_id),
       'ACCESSKEY' => trim($accesskey),
@@ -282,6 +283,3 @@ foreach ($ranges as $range) {
 }
 
 echo "Done.\n";
-
-system('ping -c 5 127.0.0.1 >/dev/null');
-
