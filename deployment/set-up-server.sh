@@ -1,4 +1,11 @@
 #!/bin/bash
+# This is intended to be a Linode StackScript but can be used manually by following the directions below.
+#
+#<UDF name="shack_username" label="Shacknews username (dedicated to this server)">
+# SHACK_USERNAME=
+#
+#<UDF name="shack_password" label="Shacknews password (stick to alphanumeric)">
+# SHACK_PASSWORD=
 
 #######################################################################################################################
 #
@@ -7,14 +14,13 @@
 #
 # You must have a Shacknews account dedicated to this.  You must set up the account so all the filters are enabled.
 #
-# Installation instructions (as root):
-#   export OWNER=(name of the new unix user that will own all site files and processes)
+# Manual installation instructions (as root):
 #   export SHACK_USERNAME=(shacknews username)
 #   export SHACK_PASSWORD=(shacknews password)
 #   wget https://raw.githubusercontent.com/electroly/winchatty-server/master/deployment/set-up-server.sh
 #   (inspect the script to make sure you know what it's going to do)
 #   bash set-up-server.sh
-#   reboot
+#   (will reboot automatically)
 #
 # To use your newly provisioned server, edit the hosts file (/etc/hosts or C:\windows\system32\drivers\etc\hosts) on
 # your local computer to point winchatty.com and www.winchatty.com to your server's IP address.
@@ -46,6 +52,7 @@
 #
 #######################################################################################################################
 
+export OWNER=me
 export DUMP_FILE=chatty-blank.sql.gz
 
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
@@ -59,10 +66,14 @@ cd /tmp
 echo "America/Chicago" > /etc/timezone
 dpkg-reconfigure --frontend noninteractive tzdata
 
+echo "deb http://apt.linode.com/ stable main" > /etc/apt/sources.list.d/linode.list
+wget -O- https://apt.linode.com/linode.gpg | apt-key add -
+
 apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
-   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl
+   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl linode-cli \
+   libdigest-hmac-perl
 npm install -g bower gulp
 
 echo 127.0.0.1 winchatty.com >> /etc/hosts
@@ -159,4 +170,4 @@ sudo -H -u postgres createdb -E UTF8 -O nusearch chatty
 curl http://s3.amazonaws.com/winchatty/$DUMP_FILE | gunzip -c | sudo -H -u postgres psql chatty
 sudo -H -u postgres psql -f /home/chatty/backend/deployment/upgrade-db.sql chatty
 
-echo Installation complete. You must reboot.
+reboot

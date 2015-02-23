@@ -29,39 +29,41 @@ $lastId = 0;
 $endId = 10000;
 
 if (file_exists('/tmp/dts-start'))
-   $chunkStart = intval(file_get_contents('/tmp/dts-start'));
+   $startId = intval(file_get_contents('/tmp/dts-start'));
 if (file_exists('/tmp/dts-end'))
    $endId = intval(file_get_contents('/tmp/dts-end'));
 
-while ($any && $lastId < $endId)
+$chunkStart = $startId;
+
+while ($any && $chunkStart >= $startId && $chunkStart <= $endId)
 {
    $rs = nsc_query($pg, 
       "SELECT p.id, p.body, p.author, COALESCE(p2.author, ''), p.category " .
       'FROM post p ' .
       'LEFT JOIN post p2 ON p.parent_id = p2.id ' .
-      'WHERE p.id > $1 ' .
+      'WHERE p.id >= $1 AND p.id <= $3' .
       'ORDER BY p.id ' .
       'LIMIT $2',
-      array($chunkStart, $chunkLen));
+      array($chunkStart, $chunkLen, $endId));
    $any = false;
    $firstId = 0;
-   $lastId = 0;
    foreach ($rs as $row) 
    {
-      $any = true;
       $id = intval($row[0]);
-      if ($id > $endId)
-         break;
       $body = strval($row[1]);
       $author = strval($row[2]);
       $parentAuthor = strval($row[3]);
       $category = intval($row[4]);
 
       dts_index($id, $body, $author, $parentAuthor, $category);
+
+      $any = true;
       if ($firstId == 0)
          $firstId = $id;
       $lastId = $id;
    }
+   if (!$any)
+      break;
    echo "Indexed $firstId ... $lastId\n";
-   $chunkStart = $lastId;
+   $chunkStart = $lastId + 1;
 }

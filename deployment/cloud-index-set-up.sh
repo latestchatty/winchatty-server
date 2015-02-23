@@ -1,21 +1,23 @@
 #!/bin/bash
-# This block defines the variables the user of the script needs to input
-# when deploying using this script.
+# This is intended to be a Linode StackScript but can be used manually by exporting these variables:
 #
-#<UDF name="start_id" label="First ID to index">
+#<UDF name="startid" label="First ID to index">
 # STARTID=
 #
-#<UDF name="end_id" label="Last ID to index">
+#<UDF name="endid" label="Last ID to index">
 # ENDID=
 #
-#<UDF name="s3_accesskey" label="S3 access key (with / slashes double-escaped)">
+#<UDF name="accesskey" label="S3 access key (with / slashes escaped)">
 # ACCESSKEY=
 #
-#<UDF name="s3_secretkey" label="S3 secret key (with / slashes double-escaped)">
+#<UDF name="secretkey" label="S3 secret key (with / slashes escaped)">
 # SECRETKEY=
 #
-#<UDF name="s3_bucket" label="S3 bucket">
+#<UDF name="bucket" label="S3 bucket">
 # BUCKET=
+#
+#<UDF name="pgsqlbackupname" label="Name of the pgsql fs-level backup in the S3 bucket">
+# PGSQLBACKUPNAME=
 
 export OWNER=me
 export SHACK_USERNAME=unused
@@ -23,13 +25,20 @@ export SHACK_PASSWORD=unused
 export DUMP_FILE=chatty-blank.sql.gz
 
 if (( EUID != 0 )); then echo "Must be root."; exit 1; fi
+if [ -z "$STARTID" ]; then echo "Missing STARTID."; exit 1; fi
+if [ -z "$ENDID" ]; then echo "Missing ENDID."; exit 1; fi
+if [ -z "$ACCESSKEY" ]; then echo "Missing ACCESSKEY."; exit 1; fi
+if [ -z "$SECRETKEY" ]; then echo "Missing SECRETKEY."; exit 1; fi
+if [ -z "$BUCKET" ]; then echo "Missing BUCKET."; exit 1; fi
+if [ -z "$PGSQLBACKUPNAME" ]; then echo "Missing PGSQLBACKUPNAME."; exit 1; fi
 
 cd /tmp
 
 apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
-   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl
+   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl \
+   libdigest-hmac-perl
 
 echo 127.0.0.1 winchatty.com >> /etc/hosts
 echo 127.0.0.1 www.winchatty.com >> /etc/hosts
@@ -43,6 +52,9 @@ sudo -H -u $OWNER git clone --recursive git://github.com/electroly/winchatty-ser
 sudo -u $OWNER mkdir backend-data
 sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
 sudo -u $OWNER mkdir search-data
+sudo -H -u $OWNER git clone --recursive git://github.com/rtdp/s3curl.git s3curl
+cp s3curl/s3curl.pl /usr/bin/
+chmod +x /usr/bin/s3curl.pl
 popd
 
 pushd /home/chatty/backend/include
@@ -79,11 +91,17 @@ cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-search.conf > /etc/init/winchatty-search.conf
 popd
 
+cat /home/chatty/backend/deployment/s3cmd/s3cfg | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" > /root/.s3cfg
+
+echo "%awsSecretAccessKeys = ( personal => { id => 'ACCESSKEY', key => 'SECRETKEY' } );" | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" | sed "s/\\\//g" > /root/.s3curl
+chmod 600 /root/.s3curl
+
 /etc/init.d/pgbouncer stop
 /etc/init.d/postgresql stop
 rm -rf /var/lib/postgresql/9.3/main/
 pushd /var/lib/postgresql/9.3/
-curl http://s3.amazonaws.com/winchatty/chatty-fsbackup-2015-02-22.tar.gz | tar zx
+#s3cmd get s3://$BUCKET/$PGSQLBACKUPNAME /tmp/pgsql_fs_backup.tar.gz
+s3curl.pl --id=personal -- http://s3.amazonaws.com/$BUCKET/$PGSQLBACKUPNAME | tar zx
 popd
 /etc/init.d/postgresql start
 /etc/init.d/pgbouncer start
@@ -100,5 +118,6 @@ pushd /home/chatty/search-data/
 tar zcvf /tmp/dts-index-chunk-$STARTID.tar.gz dts-*
 popd
 
-cat /home/chatty/backend/deployment/s3cmd/s3cfg | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" > ~/.s3cfg
-s3cmd put /tmp/dts-index-chunk* s3://$BUCKET/dts-index-chunk-$STARTID.tar.gz
+s3cmd put /tmp/dts-index-chunk-$STARTID.tar.gz s3://$BUCKET/dts-index-chunk-$STARTID.tar.gz
+
+shutdown -h now
