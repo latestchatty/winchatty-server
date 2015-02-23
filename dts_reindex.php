@@ -50,6 +50,8 @@ while ($any && $chunkStart >= $startId && $chunkStart <= $endId)
    foreach ($rs as $row) 
    {
       $id = intval($row[0]);
+      if ($id == 0)
+         continue;
       $body = strval($row[1]);
       $author = strval($row[2]);
       $parentAuthor = strval($row[3]);

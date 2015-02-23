@@ -37,8 +37,7 @@ cd /tmp
 apt-get update
 apt-get -y upgrade
 apt-get -y install apache2 postgresql pgbouncer php5 php5-pgsql php5-curl php5-cli php5-tidy php-apc php-pear \
-   libapache2-mod-php5 nodejs nodejs-legacy npm build-essential zip unzip git s3cmd htop pv mc openssl \
-   libdigest-hmac-perl
+   libapache2-mod-php5 build-essential zip unzip git s3cmd libdigest-hmac-perl
 
 echo 127.0.0.1 winchatty.com >> /etc/hosts
 echo 127.0.0.1 www.winchatty.com >> /etc/hosts
@@ -92,7 +91,6 @@ sed "s/USERNAME/$OWNER/g" upstart/winchatty-search.conf > /etc/init/winchatty-se
 popd
 
 cat /home/chatty/backend/deployment/s3cmd/s3cfg | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" > /root/.s3cfg
-
 echo "%awsSecretAccessKeys = ( personal => { id => 'ACCESSKEY', key => 'SECRETKEY' } );" | sed "s/ACCESSKEY/$ACCESSKEY/" | sed "s/SECRETKEY/$SECRETKEY/" | sed "s/\\\//g" > /root/.s3curl
 chmod 600 /root/.s3curl
 
@@ -100,7 +98,6 @@ chmod 600 /root/.s3curl
 /etc/init.d/postgresql stop
 rm -rf /var/lib/postgresql/9.3/main/
 pushd /var/lib/postgresql/9.3/
-#s3cmd get s3://$BUCKET/$PGSQLBACKUPNAME /tmp/pgsql_fs_backup.tar.gz
 s3curl.pl --id=personal -- http://s3.amazonaws.com/$BUCKET/$PGSQLBACKUPNAME | tar zx
 popd
 /etc/init.d/postgresql start

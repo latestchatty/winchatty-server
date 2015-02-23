@@ -44,7 +44,7 @@ $kernel_id = 138; # Latest 64 bit (3.18.5-x86_64-linode52)
 $datacenter_id = 6; # Newark, NJ, USA
 
 $ranges = array(
-   array(    1,  9999),
+   array(    0,  9999),
    array(10000, 19999),
    array(20000, 29999),
    array(30000, 39999),
