@@ -19,6 +19,7 @@ var httpProxy = require('http-proxy');
 var proxy = httpProxy.createServer({ timeout: 660000 });
 
 app.use(require('morgan')('combined'));
+app.use(require('compression')({ threshold: 1 }));
 
 var TIMEOUT_MSEC = 10 * 60 * 1000;
 var PRUNE_INTERVAL_MSEC = 1000;

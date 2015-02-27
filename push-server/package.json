@@ -6,6 +6,7 @@
    "dependencies": {
       "express": "~4.10.1",
       "morgan": "*",
-      "http-proxy": "*"
+      "http-proxy": "*",
+      "compression": "*"
    }
 }
