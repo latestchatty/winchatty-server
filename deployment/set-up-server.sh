@@ -61,6 +61,8 @@ if [ -z "$SHACK_USERNAME" ]; then echo "Missing SHACK_USERNAME."; exit 1; fi
 if [ -z "$SHACK_PASSWORD" ]; then echo "Missing SHACK_PASSWORD."; exit 1; fi
 if [ -z "$DUMP_FILE" ]; then echo "Missing DUMP_FILE."; exit 1; fi
 
+set -x
+
 cd /tmp
 
 echo "America/Chicago" > /etc/timezone
@@ -89,6 +91,9 @@ sudo -u $OWNER mkdir backend-data
 sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
 sudo -u $OWNER mkdir search-data
 sudo -H -u $OWNER git clone --recursive git://github.com/NiXXeD/chatty.git frontend
+sudo -H -u $OWNER git clone --recursive git://github.com/rtdp/s3curl.git s3curl
+cp s3curl/s3curl.pl /usr/bin/
+chmod +x /usr/bin/s3curl.pl
 popd
 
 pushd /home/chatty/backend/include
