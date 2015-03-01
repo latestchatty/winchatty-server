@@ -57,7 +57,14 @@ while ($any && $chunkStart >= $startId && $chunkStart <= $endId)
       $parentAuthor = strval($row[3]);
       $category = intval($row[4]);
 
-      dts_index($id, $body, $author, $parentAuthor, $category);
+      try
+      {
+         dts_index($id, $body, $author, $parentAuthor, $category);
+      }
+      catch (Exception $e) 
+      {
+         echo "Skipped id $id due to error: " . $e->getMessage() . "\n";
+      }
 
       $any = true;
       if ($firstId == 0)

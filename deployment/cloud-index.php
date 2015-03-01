@@ -8,6 +8,8 @@ $secretkey = readline('S3 secret key: ');
 $bucket = readline('S3 bucket: ');
 $pg_backup_filename = readline('Filename of pgsql fs-level backup in the S3 bucket: ');
    #todo: create this in this script automatically
+$last_post_id = intval(readline('Index post IDs from 0 to: '));
+$num_nodes = intval(readline('Number of cloud nodes: '));
 
 $start_time = time();
 
@@ -119,18 +121,17 @@ $distribution_id = 124; # Ubuntu 14.04 LTS
 $kernel_id = 138; # Latest 64 bit (3.18.5-x86_64-linode52)
 $datacenter_id = 6; # Newark, NJ, USA
 
-$ranges = array(
-   array(    0,  9999),
-   array(10000, 19999),
-   array(20000, 29999),
-   array(30000, 39999),
-   array(40000, 49999),
-   array(50000, 59999),
-   array(60000, 69999),
-   array(70000, 79999),
-   array(80000, 89999),
-   array(90000, 99999)
-);
+$ranges = array();
+$posts_per_node = intval(floor($last_post_id / $num_nodes));
+$node_start_id = 0;
+for ($i = 0; $i < $num_nodes; $i++) {
+   $node_end_id = $node_start_id + $posts_per_node;
+   if ($i == $num_nodes - 1)
+      $node_end_id = $last_post_id;
+
+   $ranges[] = array($node_start_id, $node_end_id);
+   $node_start_id = $node_end_id + 1;
+}
 
 system("s3cmd del s3://$bucket/winchatty_filehost_url");
 
