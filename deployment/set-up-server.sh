@@ -154,6 +154,7 @@ cp -f apache/default /etc/apache2/sites-available/000-default.conf
 cp -f apache/apache2.conf /etc/apache2/
 cp -f apache/ports.conf /etc/apache2/
 cp -f apache/negotiation.conf /etc/apache2/mods-enabled/
+a2enmod rewrite
 cp -f php/php-apache.ini /etc/php5/apache2/php.ini
 cp -f php/php-cli.ini /etc/php5/cli/php.ini
 sed "s/USERNAME/$OWNER/g" upstart/winchatty-indexer.conf > /etc/init/winchatty-indexer.conf
