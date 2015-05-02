@@ -174,8 +174,9 @@ proxy.on('error', function(err, req, res) {
 });
 
 proxy.on('proxyReq', function(proxyReq, req, res, options) {
-   if (req.acceptsEncodings('deflate'))
-      proxyReq.setHeader('Accept-Encoding', 'deflate');
+   var encoding = req.acceptsEncodings('deflate', 'gzip');
+   if (encoding !== false)
+      proxyReq.setHeader('Accept-Encoding', encoding);
 });
 
 app.use('/', function(req, res) {
