@@ -19,7 +19,13 @@ var httpProxy = require('http-proxy');
 var proxy = httpProxy.createServer({ timeout: 660000 });
 
 app.use(require('morgan')('combined'));
-app.use(require('compression')({ threshold: 1 }));
+app.use(require('compression')({
+   filter: function (req, res) { return true; },
+   threshold: 1
+}));
+
+var globalSTS = require('strict-transport-security').getSTS({"max-age": {days: 180}});
+app.use(globalSTS);
 
 var TIMEOUT_MSEC = 10 * 60 * 1000;
 var PRUNE_INTERVAL_MSEC = 1000;
@@ -167,6 +173,11 @@ proxy.on('error', function(err, req, res) {
    res.end();
 });
 
+proxy.on('proxyReq', function(proxyReq, req, res, options) {
+   if (req.acceptsEncodings('deflate'))
+      proxyReq.setHeader('Accept-Encoding', 'deflate');
+});
+
 app.use('/', function(req, res) {
    req.connection.setTimeout(0);
    proxy.web(req, res, {target: 'http://localhost:81'});
@@ -175,19 +186,46 @@ app.use('/', function(req, res) {
 app.timeout = 0;
 app.listen(80);
 
-// Set up HTTPS, but only if the key files are present.
-var winchattyKeyPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key';
-var winchattyCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt';
-var caCertPath = '/mnt/websites/_private/winchatty_ssl_certificate/PositiveSSLCA2.crt';
-if (fs.existsSync(winchattyKeyPath) && fs.existsSync(winchattyCertPath)) {
-   var httpsOptions = {
-      key: fs.readFileSync(winchattyKeyPath),
-      cert: fs.readFileSync(winchattyCertPath)
-   };
-   if (fs.existsSync(caCertPath)) {
-      httpsOptions.ca = [ fs.readFileSync(caCertPath) ];
-   }
-   var httpsServer = require('https').createServer(httpsOptions, app);
-   httpsServer.timeout = 0;
-   httpsServer.listen(443);
-}
+// Set up HTTPS
+var httpsOptions = {
+   key: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key'),
+   cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt'),
+   ca: [ 
+      fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/COMODORSAAddTrustCA.crt'), 
+      fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/COMODORSADomainValidationSecureServerCA.crt') 
+   ],
+   honorCipherOrder: true,
+   ciphers: [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "ECDH-RSA-AES256-GCM-SHA384",
+      "DHE-RSA-AES256-GCM-SHA384",
+      "ECDHE-RSA-AES256-GCM-SHA256",
+      "ECDH-RSA-AES256-GCM-SHA256",
+      "DHE-RSA-AES256-GCM-SHA256",
+      "ECDHE-RSA-AES128-GCM-SHA256",
+      "ECDH-RSA-AES128-GCM-SHA256",
+      "DHE-RSA-AES128-GCM-SHA256",
+      "ECDHE-RSA-AES256-SHA384",
+      "ECDH-RSA-AES256-SHA384",
+      "DHE-RSA-AES256-SHA384",
+      "ECDHE-RSA-AES256-SHA256",
+      "ECDH-RSA-AES256-SHA256",
+      "DHE-RSA-AES256-SHA256",
+      "ECDHE-RSA-AES128-SHA256",
+      "ECDH-RSA-AES128-SHA256",
+      "DHE-RSA-AES128-SHA256",
+      "HIGH",
+      "!aNULL",
+      "!eNULL",
+      "!EXPORT",
+      "!DES",
+      "!RC4",
+      "!MD5",
+      "!PSK",
+      "!SRP",
+      "!CAMELLIA"
+   ].join(':')
+};
+var httpsServer = require('https').createServer(httpsOptions, app);
+httpsServer.timeout = 0;
+httpsServer.listen(443);
