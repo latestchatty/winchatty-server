@@ -24,8 +24,8 @@ app.use(require('compression')({
    threshold: 1
 }));
 
-var globalSTS = require('strict-transport-security').getSTS({"max-age": {days: 180}});
-app.use(globalSTS);
+//var globalSTS = require('strict-transport-security').getSTS({"max-age": {days: 180}});
+//app.use(globalSTS);
 
 var TIMEOUT_MSEC = 10 * 60 * 1000;
 var PRUNE_INTERVAL_MSEC = 1000;
