@@ -16,95 +16,51 @@ function escapequotes($str)
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"> 
 <html>
    <head>
-      <meta http-equiv="Content-type" content="text/html; charset=utf-8"> 
-      <title>WinChatty Search</title>
-      <style type="text/css">
-         *                { font-family: Tahoma; font-size: 12px; }
-         body             { overflow-y: scroll; overflow: -moz-scrollbars-vertical;}
-         a                { text-decoration: none; color: #051047}
-         a:hover          { text-decoration: underline; }
-         .button          { padding: 5px; padding-left: 10px; padding-right: 10px; }
-         tr.header td     { font-weight: bold; }
-         tr.odd           { background: #F2F2F2; }
-         table            { padding: 5px; }
-         tr.formHeader td { padding-left: 5px; padding-top: 5px; font-size: 11px; }
-         .results tr td   { padding-left: 10px; }
-         input, select    { font-weight: bold; font-size: 14px; }
-         input.text       { border: 1px solid #C6C6C6; padding: 3px; }
-         .text, select    { height: 26px; }
-         select           { border: 1px solid #C6C6C6; padding: 2px; }
-         table.formTable  { border: 1px solid #C6C6C6; background: #E8E8E8; margin: 0 auto;
-                            padding-left: 10px; }
-         .formTable tr td { padding-right: 5px; }
-         #cmbCategory     { width: 125px; }
-         table.results    { width: 100%; }
-         .results tr td   { overflow-x: hidden; white-space: nowrap; height: 24px; }
-         .preview         { width: 200px; }
-         .author          { width: 100px; }
-         .parentAuthor    { width: 0px; }
-         .date            { width: 125px; }
-         .story           { width: 0px; }
-         .category        { width: 25px; }
-         .older           { margin: 0 auto; text-align: center; padding-top: 10px; }
-         td.informative   { background: url(/img/FlagBlue16.png) no-repeat 3px 3px; padding-left: 20px !important; }
-         td.nws           { background: url(/img/FlagRed16.png) no-repeat 3px 3px; padding-left: 20px !important; }
-         td.political     { background: url(/img/FlagYellow16.png) no-repeat 3px 3px; padding-left: 20px !important; }
-         .frontPage       { margin: 0 auto; width: 700px; font-size: 14px; padding-top: 20px; }
-         .frontPage a     { font-weight: bold; font-size: 14px; }
-         .frontPage ul li { font-size: 14px; margin-bottom: 15px; }
-         .frontPage ul    { padding-top: 10px; padding-bottom: 5px; }
-         
-         .jt_red          { color: #f00; }
-         .jt_green        { color: #8dc63f; }
-         .jt_pink         { color: #f4569a; }
-         .jt_olive        { color: olive; }
-         .jt_fuchsia      { color: #c0ffc0; }
-         .jt_yellow       { color: #c3a900; } /* ffde00 */
-         .jt_blue         { color: #44aedf; }
-         .jt_lime         { color: #90bf90; } /* c0ffc0 */
-         .jt_orange       { color: #f7941c; }
-         .jt_italic       { font-style: italic; }
-         .jt_bold         { font-weight: bold; }
-         .jt_underline    { text-decoration: underline; }
-         .jt_strike       { text-decoration: line-through; }
-         .jt_sample       { font-size: 80%; }
-         .jt_quote        { font-family: serif; font-size: 110%; }
-         .jt_spoiler      { color: #383838; background-color: #383838; }
-         .jt_spoiler_show { color: #f00; }
-         .jt_codesmall    { font-family: monospace; }
-         .jt_code         { font-family: monospace; }
-         div.fpauthor_168952 .jt_wtf242, div.olauthor_168952  { color: #808080; }
-         </style>
+      <meta charset="utf-8"> 
+      <title>WinChatty Old Search</title>
+      <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+      <link href="nusearch_style.css" rel="stylesheet" type="text/css">
+      <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
    </head>
    <body>
-      <div style="text-align: center;"><a href="/nusearch" style="color: red;">Go back to WinChatty NuSearch</a></div>
-      <form action="search" method="get">
-         <table class="formTable" cellspacing=0 cellpadding=0>
-            <tr class="formHeader">
-               <td>Search:</td>
-               <td>Author:</td>
-               <td>Parent Author:</td>
-               <td>Category:</td>
-            </tr>
-            <tr>
-               <td><input class="text" type="text" name="terms" value="<?=escapequotes($terms)?>"></td>
-               <td><input class="text" type="text" name="author" value="<?=escapequotes($author)?>"></td>
-               <td><input class="text" type="text" name="parentAuthor" value="<?=escapequotes($parentAuthor)?>"></td>
-               <td>
-                  <select name="category" id="cmbCategory">
-                     <option></option>
-                     <option>nws</option>
-                     <option>informative</option>
-                     <option>political</option>
-                  </select>
-                  <script language="JavaScript" type="text/javascript">
-                     document.getElementById("cmbCategory").value = "<?=$category?>";
-                  </script>
-               </td>
-               <td><input type="submit" value="Search" class="button" id="btnSubmit"></td>
-            </tr>
-         </table>
-      </form>
+      <div id="formContainer" style="position: fixed; width: 100%;">
+         <a href="/nusearch"><img src="/img/App128.png" id="logo" alt="WinChatty NuSearch"></a>
+         <div style="position: absolute; top: 0px; left: 60px; font-size: 12px;">
+            <a href="/nusearch" class="top_link">NuSearch</a> &bull; 
+            <a href="/search" class="top_link"><b>Old Search</b></a> &bull; 
+            <a href="/archive" class="top_link">Archive</a>
+         </div>
+         <form action="/search" method="get">
+            <table id="formTable">
+               <tr id="formHeader">
+                  <td>Search:</td>
+                  <td>Author:</td>
+                  <td>Parent author:</td>
+                  <td>Moderation flag:</td>
+                  <td></td>
+               </tr>
+               <tr>
+                  <td><input class="text" autofocus type="text" name="terms" value="<?=isset($_GET['terms']) ? htmlspecialchars($_GET['terms']) : ''?>"></td>
+                  <td><input class="text" type="text" name="author" value="<?=isset($_GET['author']) ? htmlspecialchars($_GET['author']) : ''?>"></td>
+                  <td><input class="text" type="text" name="parentAuthor" value="<?=isset($_GET['parentAuthor']) ? htmlspecialchars($_GET['parentAuthor']) : ''?>"></td>
+                  <td>
+                     <select name="category" id="category">
+                        <option></option>
+                        <option>nws</option>
+                        <option>informative</option>
+                        <option>political</option>
+                     </select>
+                     <script>
+                        $("#category").val("<?=htmlspecialchars($category)?>");
+                     </script>
+                  </td>
+                  <td><input type="submit" value="Search" class="button" id="btnSubmit"></td>
+               </tr>
+            </table>
+         </form>
+      </div>
+
+
 <?
 if (strlen($terms . $author . $parentAuthor . $category) > 0)
 {
@@ -167,6 +123,7 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
    }
 
    ?>
+   <div style="height: 70px;"></div>
    <div style="font-size: 16px; padding: 10px; float: left;">
    Found <?=number_format($totalResults)?> total results.
    </div>
@@ -205,14 +162,8 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
          <input class="button" type="submit" value="&gt;|" <?=count($results) < $perPage ? 'disabled' : ''?>>
       </form>
    </div>   
-   <table border=0 cellspacing=0 cellpadding=4 class="results">
-   <tr class="header">
-      <td>Preview</td>
-      <td>Author</td>
-      <td><!--Parent&nbsp;Author--></td>
-      <td>Date</td>
-      <td><!--Story--></td>
-   </tr>
+   <div id="results">
+      <table style="margin: 0 auto; margin-bottom: 50px;"><tbody>
    <?
    
    if (empty($results))
@@ -226,23 +177,15 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
       <?
    }
    
-   $odd = true;
    foreach ($results as $result)
    {
       ?>
-      <tr class="<?=$odd ? 'odd' : 'even'?>">
-         <td class="<?=$result['category']?>">
-            <div class="preview">
-            <a href="http://shacknews.com/laryn.x?id=<?=$result['id']?>#item_<?=$result['id']?>"><?=$result['preview']?></a>
-            </div>
-         </td>
-         <td class="author"><a href="search?terms=&amp;parentAuthor=&amp;author=<?=urlencode($result['author'])?>"><?=$result['author']?></a></td>
-         <td class="parentAuthor"><a href="search?terms=&amp;parentAuthor=&amp;author=<?=urlencode($result['parentAuthor'])?>"><?=$result['parentAuthor']?></a></td>
+      <tr>
+         <td class="body"><a class="resultLink" href="http://www.shacknews.com/chatty?id=<?=$result['id']?>#item_<?=$result['id']?>"><?=$result['preview']?></a></td>
+         <td class="author"><a class="resultLink" href="search?terms=&amp;parentAuthor=&amp;author=<?=urlencode($result['author'])?>"><?=$result['author']?></a></td>
          <td class="date"><?=$result['date']?></td>
-         <td class="story"><a href="http://shacknews.com/laryn.x?story=<?=$result['story_id']?>"><?=substr($result['story_name'], 0, 30)?></a></td>
       </tr>
       <?
-      $odd = !$odd;
    }
 
    # Give the user a link to perform this search on the real Shacknews search
@@ -250,7 +193,7 @@ if (strlen($terms . $author . $parentAuthor . $category) > 0)
 #      $terms .= " parentauthor:$parentAuthor";
 
    ?>
-   </table>
+   </table></div>
 
    <div style="text-align: right;">
       <form method="get" action="search" style="display: inline;">

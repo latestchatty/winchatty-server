@@ -38,7 +38,7 @@ $model['home'] = $model['terms'] == '' &&
       <div id="formContainer" style="position: fixed; width: 100%;">
          <a href="/nusearch"><img src="/img/App128.png" id="logo" alt="WinChatty NuSearch"></a>
          <div style="position: absolute; top: 0px; left: 60px; font-size: 12px;">
-            <a href="/nusearch" class="top_link">NuSearch</a> &bull; 
+            <a href="/nusearch" class="top_link"><b>NuSearch</b></a> &bull; 
             <a href="/search" class="top_link">Old Search</a> &bull; 
             <a href="/archive" class="top_link">Archive</a>
          </div>

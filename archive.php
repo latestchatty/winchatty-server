@@ -61,7 +61,7 @@ $rs = nsc_getRootPostsFromDay($pg, $day);
          <div style="position: absolute; top: 0px; left: 60px; font-size: 12px;">
             <a href="/nusearch" class="top_link">NuSearch</a> &bull; 
             <a href="/search" class="top_link">Old Search</a> &bull; 
-            <a href="/archive" class="top_link">Archive</a>
+            <a href="/archive" class="top_link"><b>Archive</b></a>
          </div>
          <form action="/archive" method="get">
             <table id="formTable">
