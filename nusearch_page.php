@@ -219,7 +219,7 @@ pg_close($pg);
    <tr>
       <td class="body"><?=categoryToHTML($result['category'])?><a title="<?=htmlspecialchars(strip_tags(str_replace('<br />', "\n", $result['body'])))?>" class="resultLink" href="http://www.shacknews.com/chatty?id=<?=$result['id']?>#item_<?=$result['id']?>"><?=previewFromBody($result['body'])?></a></td>
       <td class="author"><a class="resultLink" href="/nusearch?a=<?=urlencode($result['author'])?>"><?=$result['author']?></a></td>
-      <td class="date"><nobr><?=date('M d, Y h:i A', strtotime($result['date']))?></nobr></td>
+      <td class="date"><a class="resultLink" href="/archive?day=<?=date('Y-m-d', strtotime($result['date']))?>"><nobr><?=date('M d, Y h:i A', strtotime($result['date']))?></nobr></a></td>
    </tr>
    <? } ?>
 </table>

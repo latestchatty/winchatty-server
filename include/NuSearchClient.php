@@ -1145,3 +1145,25 @@ function nfy_detachAccount($pg, $clientId, $username)
 {
    nsc_execute($pg, 'DELETE FROM notify_client WHERE username = $1 AND id = $2', array($username, $clientId));
 }
+
+function nsc_getRootPostsFromDay($pg, $date, $username = '')
+{
+   $day_of = date('Y-m-d', $date);
+   $day_after = date('Y-m-d', $date + 24*60*60);
+   $sql = <<<'SQL'
+      SELECT 
+         c.id, c.date, c.author, c.category, c.body, b.count post_count, 
+         (SELECT COUNT(*) FROM post d WHERE d.thread_id = c.id AND d.author_c = $1) participant_count 
+      FROM post c 
+      INNER JOIN 
+         (SELECT p.thread_id, COUNT(*) count 
+         FROM post p 
+         INNER JOIN 
+            (SELECT id FROM thread WHERE date >= $2 AND date < $3) a 
+            ON a.id = p.thread_id 
+         GROUP BY p.thread_id 
+         ORDER BY count DESC) b 
+         ON c.id = b.thread_id
+SQL;
+   return nsc_query($pg, $sql, array($username, $day_of, $day_after));
+}

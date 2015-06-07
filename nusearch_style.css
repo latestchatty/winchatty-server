@@ -21,6 +21,9 @@ a:hover           { text-decoration: underline; }
                     text-overflow: ellipsis; white-space: nowrap; }
 .date             { padding-bottom: 5px; text-align: right; font-size: 14px; width: 100px; max-width: 100px; overflow: hidden; 
                     text-overflow: ellipsis; white-space: nowrap; }
+.postcount        { padding-bottom: 5px; text-align: right; font-size: 14px; width: 75px; max-width: 100px; overflow: hidden; 
+                    white-space: nowrap; }
+.top_link         { text-decoration: none; color: #59325E; }
 
 .jt_red           { color: #f00; }
 .jt_green         { color: #8dc63f; }
