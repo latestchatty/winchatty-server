@@ -512,9 +512,19 @@ function nsc_getThread($pg, $id, $possiblyMissing = false, $sort = false)
       'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE thread_id = $1 ' . $orderBy, 
       array($threadId));
    $posts = array_map('nsc_newPostFromRow', $rows);
+
+   nsc_execute($pg, 'BEGIN', array());
+   nsc_execute($pg, 'SET LOCAL ENABLE_MERGEJOIN TO OFF', array());
+   nsc_execute($pg, 'SET LOCAL ENABLE_HASHJOIN TO OFF', array());
+
    $lols = nsc_query($pg,
-      'SELECT l.post_id, l.tag, l.count FROM post p INNER JOIN post_lols l on p.id = l.post_id WHERE p.thread_id = $1', 
+      'SELECT post_id, tag, count FROM post_lols WHERE post_lols.post_id IN (SELECT id FROM post WHERE thread_id = $1)',
       array($threadId));
+
+   nsc_execute($pg, 'SET LOCAL ENABLE_MERGEJOIN TO ON', array());
+   nsc_execute($pg, 'SET LOCAL ENABLE_HASHJOIN TO ON', array());
+   nsc_execute($pg, 'ROLLBACK', array());
+
    return array(
       'threadId' => $threadId,
       'posts' => nsc_infuseLolCounts($posts, $lols)
