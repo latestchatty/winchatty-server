@@ -86,12 +86,12 @@ useradd -g www-data -m $OWNER
 mkdir /home/chatty
 pushd /home/chatty
 chown $OWNER:www-data .
-sudo -H -u $OWNER git clone --recursive git://github.com/electroly/winchatty-server.git backend
+sudo -H -u $OWNER git clone --recursive https://github.com/electroly/winchatty-server.git backend
 sudo -u $OWNER mkdir backend-data
-sudo -H -u $OWNER git clone --recursive git://github.com/electroly/duct-tape-search.git search
+sudo -H -u $OWNER git clone --recursive https://github.com/electroly/duct-tape-search.git search
 sudo -u $OWNER mkdir search-data
-sudo -H -u $OWNER git clone --recursive git://github.com/NiXXeD/chatty.git frontend
-sudo -H -u $OWNER git clone --recursive git://github.com/rtdp/s3curl.git s3curl
+sudo -H -u $OWNER git clone --recursive https://github.com/NiXXeD/chatty.git frontend
+sudo -H -u $OWNER git clone --recursive https://github.com/rtdp/s3curl.git s3curl
 cp s3curl/s3curl.pl /usr/bin/
 chmod +x /usr/bin/s3curl.pl
 popd
