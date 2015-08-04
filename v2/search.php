@@ -24,7 +24,7 @@ $limit = nsc_getArg('limit', 'INT?,500', 35);
 $oldestFirst = nsc_getArg('oldestFirst', 'BIT?', false);
 
 if (empty($terms) && empty($author) && empty($parentAuthor))
-   nsc_die('ERR_SERVER', '(Temporary) A search term, author, or parent author query is required.');
+   nsc_die('ERR_ARGUMENT', 'A search term, author, or parent author query is required.');
 
 #$posts = nsc_search($pg, $terms, $author, $parentAuthor, $category, $offset, $limit, $oldestFirst);
 
