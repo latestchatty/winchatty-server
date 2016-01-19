@@ -192,6 +192,40 @@ class ClassicAdapter
       return $json;
    }
    
+   public static function nusearch($terms, $author, $parentAuthor, $page = 1)
+   {
+      $resultsPerPage = 20;
+      $pg = nsc_connectToDatabase();
+      $posts = nsc_search($pg, $terms, $author, $parentAuthor, '', 
+         ($page - 1) * $resultsPerPage, $resultsPerPage + 1, false);
+
+      $json = array(
+         'terms'         => $terms,
+         'author'        => $author,
+         'parent_author' => $parentAuthor,
+         'comments'      => array(),
+         'last_page'     => $page + (count($posts) > $resultsPerPage ? 1 : 0)
+      );
+
+      foreach ($posts as $result)
+      {
+         $json['comments'][] = array(
+            'comments'      => array(),
+            'last_reply_id' => null,
+            'author'        => $result['author'],
+            'date'          => nsc_v1_date(strtotime($result['date'])),
+            'story_id'      => 0,
+            'category'      => null,
+            'reply_count'   => null,
+            'id'            => $result['id'],
+            'story_name'    => 'Chatty',
+            'preview'       => nsc_previewFromBody($result['body']),
+            'body'          => null);
+      }
+      
+      return $json;
+   }
+
    public static function getMessages($username, $password)
    {
       $o = MessageParser()->getMessages('inbox', $username, $password, 1, 50);
