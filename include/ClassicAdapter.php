@@ -207,6 +207,8 @@ class ClassicAdapter
          'last_page'     => $page + (count($posts) > $resultsPerPage ? 1 : 0)
       );
 
+      $posts = array_slice($posts, 0, $resultsPerPage);
+
       foreach ($posts as $result)
       {
          $json['comments'][] = array(
