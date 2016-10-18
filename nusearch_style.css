@@ -57,3 +57,7 @@ a:hover           { text-decoration: underline; }
 
 #results          { margin: 0 30px; max-width: 1200px; } 
 #results > table  { width: 100%; }
+
+@media (max-width: 1075px) {
+    div#top_links { display: none; }
+}
