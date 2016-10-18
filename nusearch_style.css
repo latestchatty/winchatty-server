@@ -59,5 +59,6 @@ a:hover           { text-decoration: underline; }
 #results > table  { width: 100%; }
 
 @media (max-width: 1075px) {
-    div#top_links { display: none; }
+    div#top_links { left: 0px !important; }
+    img#logo { display: none; }
 }
