@@ -166,18 +166,24 @@ class ChattyParser extends Parser
       #<a rel="nofollow" href="/chatty?page=9">9</a> 
       #<a rel="nofollow" href="/chatty?page=5" class="nextprev">Next &raquo;</a></div> <!-- class="pagenavigation" --> 
       #
-      $this->seek(1, array('<div class="pagenavigation">', '>'));
-
-      # May not be present if there's only 1 page.
-      if ($this->peek(1, '<a rel="nofollow" class="selected_page"') === false)
+      if ($this->peek(1, '<div class="pagenavigation">') === false)
       {
          $o['current_page'] = 1;
       }
       else
       {
-         $o['current_page'] = $this->clip(
-            array('<a rel="nofollow" class="selected_page"', '>'),
-            '</a>');
+         $this->seek(1, array('<div class="pagenavigation">', '>'));
+      
+         if ($this->peek(1, '<a rel="nofollow" class="selected_page"') === false)
+         {
+            $o['current_page'] = 1;
+         }
+         else
+         {
+            $o['current_page'] = $this->clip(
+               array('<a rel="nofollow" class="selected_page"', '>'),
+               '</a>');
+         }
       }
 
       #
