@@ -665,6 +665,8 @@ function nsc_search($pg, $terms, $author, $parentAuthor, $category, $offset, $li
    $args[] = $limit;
    $args[] = $offset;
 
+   nsc_execute($pg, 'SET statement_timeout TO 90000', array());
+
    $rs = pg_query_params($pg, $sql, $args);
    if ($rs === false)
       nsc_die('ERR_SERVER', 'Failed to execute SQL query: ' . $sql);

@@ -186,6 +186,8 @@ else
 
 if (!$none)
 {
+   nsc_execute($pg, 'SET statement_timeout TO 90000', array());
+
    $rs = pg_query_params($pg, $sql, $args);
    if ($rs === false)
       die('Failed to execute SQL query: ' . $sql);
