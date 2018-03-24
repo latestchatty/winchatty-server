@@ -442,6 +442,13 @@ function nsc_newPostFromRow($row)
    );
 }
 
+function nsc_newPostFromRowWithParentAuthor($row)
+{
+      $a = nsc_newPostFromRow($row);
+      $a['parentAuthor'] = strval($row[7]);
+      return $a;
+}
+
 function nsc_infuseLolCounts($posts, $lols)
 {
    # $posts is a list of [POST] objects without the 'lols' field set.
@@ -564,7 +571,7 @@ function nsc_getPostRange($pg, $startId, $count, $reverse = false)
    if ($reverse)
    {
       $rows = nsc_query($pg,
-         'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id <= $1 ORDER BY id DESC LIMIT $2',
+         'SELECT p.id, p.thread_id, p.parent_id, p.author, p.category, p.date, p.body, COALESCE(p2.author, \'\') AS parent_author FROM post p LEFT JOIN post p2 ON p.parent_id = p2.id WHERE p.id <= $1 ORDER BY p.id DESC LIMIT $2',
          array($startId, $count));
       $lols = nsc_query($pg,
          'SELECT post_id, tag, count FROM post_lols WHERE post_id <= $1 ORDER BY post_id DESC LIMIT $2', 
@@ -573,13 +580,13 @@ function nsc_getPostRange($pg, $startId, $count, $reverse = false)
    else
    {
       $rows = nsc_query($pg,
-         'SELECT id, thread_id, parent_id, author, category, date, body FROM post WHERE id >= $1 ORDER BY id LIMIT $2',
+         'SELECT p.id, p.thread_id, p.parent_id, p.author, p.category, p.date, p.body, COALESCE(p2.author, \'\') AS parent_author FROM post p LEFT JOIN post p2 ON p.parent_id = p2.id WHERE p.id >= $1 ORDER BY p.id LIMIT $2',
          array($startId, $count));
       $lols = nsc_query($pg,
          'SELECT post_id, tag, count FROM post_lols WHERE post_id >= $1 ORDER BY post_id LIMIT $2', 
          array($startId, $count));
    }
-   $posts = array_map('nsc_newPostFromRow', $rows);
+   $posts = array_map('nsc_newPostFromRowWithParentAuthor', $rows);
    return nsc_infuseLolCounts($posts, $lols);
 }
 
