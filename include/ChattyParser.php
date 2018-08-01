@@ -66,7 +66,7 @@ class ChattyParser extends Parser
          return 'fixup_postbox_parent_for_remove('; # callers check for this string to detect success
       }
 
-      $postURL = 'http://www.shacknews.com/post_chatty.x';
+      $postURL = 'https://www.shacknews.com/post_chatty.x';
 
       if ($parentID != 0 && ($contentTypeID == -1 || $contentID == -1))
       {
