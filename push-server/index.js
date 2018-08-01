@@ -192,8 +192,7 @@ var httpsOptions = {
    key: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty.key'),
    cert: fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.crt'),
    ca: [ 
-      fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/COMODORSAAddTrustCA.crt'), 
-      fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/COMODORSADomainValidationSecureServerCA.crt') 
+      fs.readFileSync('/mnt/websites/_private/winchatty_ssl_certificate/winchatty_com.ca-bundle') 
    ],
    honorCipherOrder: true,
    ciphers: [
