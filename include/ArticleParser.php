@@ -18,7 +18,7 @@ class ArticleParser extends Parser
    public function getArticle($storyID)
    {
       $storyID = intval($storyID);
-      $this->init($this->download("http://www.shacknews.com/article/$storyID"));
+      $this->init($this->download("https://www.shacknews.com/article/$storyID"));
       return $this->parseArticle($this, $storyID);
    }
 
@@ -33,21 +33,13 @@ class ArticleParser extends Parser
          'id'            => intval($storyID),
          'thread_id'     => 0);
 
-      $p->seek(1, '<div id="main-content">');
-      $story['name'] = trim(html_entity_decode(strval(
-         $p->clip(array('<h1 class="title">', '>'), '</h1>'))));
-      $p->seek(1, '<div class="date');
-      $day = intval($p->clip(array('<div class="day">', '>'), '</div>'));
-      $month = trim(strval($p->clip(array('<li>', '>'), '</li>')));
-      $year = intval($p->clip(array('<li>', '>'), '</li>'));
-      $time = trim(strval($p->clip(array('<li class="time">', '>'), '</li>')));
-      $story['date'] = nsc_v1_date(strtotime("$month $day $year $time PST"));
-      if ($p->peek(1, '<a class="chatty" href="/chatty?id='))
-         $story['thread_id'] = intval($p->clip(array('<a class="chatty" href="/chatty?id=', 'id=', '='), '"'));
-      $story['preview'] = trim(html_entity_decode(strval(
-         $p->clip(array('<p class="blurb">', '>'), '</p>'))));
-      $story['body'] = trim(html_entity_decode(strval(
-         $p->clip(array('<article class="post">', '>'), '</article>'))));
+      $p->seek(1, '<div class="article-lead-middle">');
+      $story['name'] = html_entity_decode($p->clip(array('<h1 class="article-title">', '>'), '</h1>'));
+      $story['preview'] = html_entity_decode($p->clip(array('<description>', '<p>', '>'), '</p>'));
+      $p->seek(1, '<div class="article-lead-bottom">');
+      //$author = html_entity_decode($p->clip(array('<div class="attribution">', '<address', '<a href="https://www.shacknews.com/author', '>'), '</a>'));
+      $story['date'] = nsc_v1_date(strtotime($p->clip(array('<time datetime="', '"'), '">')));
+      $story['body'] = '<p>' . $p->clip(array('<p>', '>'), '<div class="author-short-bio');
    
       return $story;
    }

@@ -232,15 +232,12 @@ class ClassicAdapter
    {
       $o = MessageParser()->getMessages('inbox', $username, $password, 1, 50);
       
-      # The iPhone app is pretty touchy about encoding.  Even though it's 
-      # formatted as JSON, it still needs to be XML encoded.  WinChatty has
-      # no such bug.
       $messages = array();
       
       foreach ($o['messages'] as $message)
       {
-         $message['subject'] = htmlentities($message['subject']);
-         $message['from']    = htmlentities($message['from']);
+         $message['subject'] = $message['subject'];
+         $message['from']    = $message['from'];
          $messages[]         = $message;
       }
 

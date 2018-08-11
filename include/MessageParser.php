@@ -29,7 +29,7 @@ class MessageParser extends Parser
          
       $messagesPerPage = 50; # Now hard-coded on Shacknews.
       
-      $this->init($this->userDownload("http://www.shacknews.com/messages/$folder?page=$page", $username, $password));
+      $this->init($this->userDownload("https://www.shacknews.com/messages/$folder?page=$page", $username, $password));
 
       $o = array(
          'current_page' => $page,
@@ -105,9 +105,9 @@ class MessageParser extends Parser
          }
          
          # <div>Subject:&nbsp;<span class="message-subject">Re: New Chatty API</span></div>
-         $m['subject'] = $this->clip(
+         $m['subject'] = html_entity_decode($this->clip(
             array('<span class="message-subject"', '>'),
-            '</span>');
+            '</span>'));
          
          # <div>Date:&nbsp;<span class="message-date">February 15, 2011, 1:02 pm</span></div> 
          $m['date'] = $this->clip(
@@ -127,7 +127,7 @@ class MessageParser extends Parser
 
    public function getUserID($username, $password)
    {
-      $this->init($this->userDownload("http://www.shacknews.com/messages", $username, $password));
+      $this->init($this->userDownload("https://www.shacknews.com/messages", $username, $password));
       
       # <input type="hidden" name="uid" value="172215"> 
       return $this->clip(
@@ -138,7 +138,8 @@ class MessageParser extends Parser
    public function sendMessage($username, $password, $recipient, $subject, $body)
    {
       $body = str_replace("\r", "", $body);
-      $url = 'http://www.shacknews.com/messages/send';
+
+      $url = 'https://www.shacknews.com/messages/send';
       $postArgs =
          'uid='      . urlencode($this->getUserID($username, $password)) .
          '&to='      . urlencode($recipient) .
@@ -148,14 +149,14 @@ class MessageParser extends Parser
       $this->userDownload($url, $username, $password, $postArgs);
       return true;
    }
-   
+
    public function deleteMessage($username, $password, $id)
    {
-      $url = 'http://www.shacknews.com/messages/delete';
+      $url = 'https://www.shacknews.com/messages/delete';
 
-      # Since we don't know whether it's in the inbox or the outbox, and
-      # I don't want to change the interface to provide that information,
-      # we will just try both.  Deal with it.
+      // Since we don't know whether it's in the inbox or the outbox, and
+      // I don't want to change the interface to provide that information,
+      // we will just try both.  Deal with it.
       $postArgs =
          'mid='   . urlencode($id) .
          '&type=' . 'inbox';
@@ -174,7 +175,7 @@ class MessageParser extends Parser
       if ($folder != 'inbox' && $folder != 'sent')
          throw new Exception('Folder must be "inbox" or "sent".');
 
-      $url = 'http://www.shacknews.com/messages/delete';
+      $url = 'https://www.shacknews.com/messages/delete';
 
       $postArgs =
          'mid='   . urlencode($id) .
@@ -191,7 +192,7 @@ class MessageParser extends Parser
    
    public function markMessageAsRead($username, $password, $id)
    {
-      $url = 'http://www.shacknews.com/messages/read';
+      $url = 'https://www.shacknews.com/messages/read';
       $postArgs = 
          'mid=' . urlencode($id);
 
