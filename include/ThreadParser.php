@@ -51,7 +51,7 @@ class ThreadParser extends Parser
    public function getThreadBodies($threadID)
    {
       $threadID = intval($threadID);
-      $url      = "http://www.shacknews.com/frame_laryn.x?root=$threadID";
+      $url      = "https://www.shacknews.com/frame_laryn.x?root=$threadID";
       $html     = $this->download($url, true);
 
       self::$threadBodiesHtml = $html;
@@ -120,7 +120,7 @@ class ThreadParser extends Parser
    public function getThreadTree($threadID)
    {
       $threadID = intval($threadID);
-      $url      = "http://www.shacknews.com/chatty?id=$threadID";
+      $url      = "https://www.shacknews.com/chatty?id=$threadID";
       $html     = $this->download($url);
 
       self::$threadTreeHtml = $html;

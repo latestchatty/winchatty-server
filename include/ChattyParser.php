@@ -38,7 +38,7 @@ class ChattyParser extends Parser
       }
       else if ($storyID == 0)
       {
-         $url = "http://www.shacknews.com/chatty?page=$page";
+         $url = "https://www.shacknews.com/chatty?page=$page";
       }
       else
       {
@@ -70,7 +70,7 @@ class ChattyParser extends Parser
 
       if ($parentID != 0 && ($contentTypeID == -1 || $contentID == -1))
       {
-         $contentURL = "http://www.shacknews.com/chatty?id=$parentID";
+         $contentURL = "https://www.shacknews.com/chatty?id=$parentID";
          $html = $this->download($contentURL, true);
          $this->init($html);
          $this->seek(1, '<input type="hidden" name="content_type_id"');
@@ -237,7 +237,7 @@ class ChattyParser extends Parser
 
    public function isModerator($username, $password)
    {
-      $html = $this->userDownload('http://www.shacknews.com/moderators', $username, $password);
+      $html = $this->userDownload('https://www.shacknews.com/moderators', $username, $password);
       return strpos($html, '<div id="mod_board_head">') !== false;
    }
 
@@ -263,7 +263,7 @@ class ChattyParser extends Parser
          default: throw new Exception('Unexpected category string.');
       }
 
-      $url = "http://www.shacknews.com/mod_chatty.x?root=$threadId&post_id=$postId&mod_type_id=$categoryInt";
+      $url = "https://www.shacknews.com/mod_chatty.x?root=$threadId&post_id=$postId&mod_type_id=$categoryInt";
 
       $html = $this->userDownload($url, $username, $password);
       if (strpos($html, 'Invalid moderation flags') !== false)
