@@ -17,19 +17,14 @@ function escapequotes($str)
 <html>
    <head>
       <meta charset="utf-8"> 
-      <title>WinChatty Old Search</title>
+      <title>WinChatty Search</title>
       <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic" rel="stylesheet" type="text/css">
       <link href="nusearch_style.css" rel="stylesheet" type="text/css">
       <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
    </head>
    <body>
       <div id="formContainer" style="position: fixed; width: 100%;">
-         <a href="/nusearch"><img src="/img/App128.png" id="logo" alt="WinChatty NuSearch"></a>
-         <div style="position: absolute; top: 0px; left: 60px; font-size: 12px;">
-            <a href="/nusearch" class="top_link">NuSearch</a> &bull; 
-            <a href="/search" class="top_link"><b>Old Search</b></a> &bull; 
-            <a href="/archive" class="top_link">Archive</a>
-         </div>
+         <a href="/search"><img src="/img/App128.png" id="logo" alt="WinChatty"></a>
          <form action="/search" method="get">
             <table id="formTable">
                <tr id="formHeader">
