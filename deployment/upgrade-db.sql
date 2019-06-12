@@ -38,6 +38,15 @@ DO $$
       COMMENT ON TABLE indexer IS '2';
    END IF;
 
+   IF obj_description('indexer'::regclass, 'pg_class') = '2' THEN
+      RAISE NOTICE 'Upgrading to version 3...';
+      DROP INDEX idx_post_index_body_c_ts;
+      DROP INDEX idx_post_author_c;
+      DROP INDEX idx_post_category;
+      DROP INDEX idx_post_body_c;
+      COMMENT ON TABLE indexer IS '3';
+   END IF;
+   
    RAISE NOTICE 'New version: %', obj_description('indexer'::regclass, 'pg_class');
 
    END;
