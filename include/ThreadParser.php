@@ -89,9 +89,9 @@ class ThreadParser extends Parser
          $reply['body'] = $this->makeSpoilersClickable($this->clip(
             array('<div class="postbody">', '>'),
             '</div>'));
-         $reply['date'] = $this->clip(
+         $reply['date'] = strip_tags($this->clip(
             array('<div class="postdate">', '>'),
-            '</div');
+            'T</div')) . 'T';
          
          $o['replies'][] = $reply;
       }
@@ -195,9 +195,9 @@ class ThreadParser extends Parser
       $thread['body'] = $this->makeSpoilersClickable(trim($p->clip(
          array('<div class="postbody">', '>'),
          '</div>')));
-      $thread['date'] = $p->clip(
+      $thread['date'] = strip_tags($p->clip(
          array('<div class="postdate">', '>'),
-         '</div');
+         'T</div')) . 'T';
 
       # Read the rest of the replies in this thread.
       $depth = 0;
