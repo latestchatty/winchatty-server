@@ -31,6 +31,7 @@ app.use(require('compression')({
 
 var TIMEOUT_MSEC = 10 * 60 * 1000;
 var PRUNE_INTERVAL_MSEC = 1000;
+var NOTIFICATION_INTERVAL_MSEC = 30000;
 var EVENT_ID_FILE_PATH = '/mnt/ssd/ChattyIndex/LastEventID';
 var EVENTS_FILE_PATH = '/mnt/ssd/ChattyIndex/LastEvents.json';
 
@@ -167,6 +168,20 @@ app.get('/v2/waitForEvent', (function() {
    setInterval(pruneEventConnections, PRUNE_INTERVAL_MSEC);
    return go;
 })());
+
+/***/
+
+app.post('/v2/notifications/waitForNotification', function(req, res) {
+    // the intention is to poll periodically so the caller makes one "wait" call and we make a number of "poll"
+    // calls. but it's hard to manage in the face of callers that might stop listening while we're still polling.
+    // so just wait and then poll once. this effectively turns it into polling for the caller, but we don't have PHP
+    // processes sitting around handling waitForNotification calls, and isn't that what life is all about?
+    setTimeout(function() {
+        req.connection.setTimeout(0);
+        req.url = req.url.replace('waitForNotification', 'pollForNotification');
+        proxy.web(req, res, {target: 'http://localhost:81'});
+    }, NOTIFICATION_INTERVAL_MSEC);
+});
 
 /***/
 
