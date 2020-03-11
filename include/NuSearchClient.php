@@ -341,7 +341,7 @@ function nsc_previewFromBody($body)
    $preview = str_replace("\n", " ", $preview);
    $preview = str_replace("\r", " ", $preview);
    $preview = nsc_strReplaceAll("  ", " ", $preview);
-   $preview = html_entity_decode(strip_tags($preview, '<span><b><i><u>'));
+   $preview = emoji_decode(strip_tags($preview, '<span><b><i><u>'));
    return $preview;
 }
 
@@ -439,7 +439,7 @@ function nsc_newPostFromRow($row)
       'author' => strval($row[3]),
       'category' => nsc_flagIntToString($row[4]),
       'date' => nsc_date(strtotime($row[5])),
-      'body' => html_entity_decode(strval($row[6]))
+      'body' => emoji_decode(strval($row[6]))
       //NOTE: nsc_infuseLolCounts() must be used to inject the 'lols' field.
    );
 }
@@ -1187,4 +1187,11 @@ function nsc_getRootPostsFromDay($pg, $date, $username = '')
          ON c.id = b.thread_id
 SQL;
    return nsc_query($pg, $sql, array($username, $day_of, $day_after));
+}
+
+function emoji_decode($encoded) {
+    $srcEntities = array('&lt;', '&gt;');
+    $dstEntities = array('&amp;lt;', '&amp;gt;');
+    $doubleEncoded = str_replace($srcEntities, $dstEntities, $encoded);
+    return html_entity_decode($doubleEncoded);
 }
