@@ -142,7 +142,7 @@ class ThreadParser extends Parser
 
       $this->init($html);
 
-      $this->seek(1, '<div id="main">');
+      $this->seek(1, '<div class="threads">');
       
       $story_id = 0;
       $story_name = 'Latest Chatty';

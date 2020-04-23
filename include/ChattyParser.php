@@ -186,27 +186,11 @@ class ChattyParser extends Parser
       # <span class="author">by Xav de Matos, Jul 09, 2014 11:49pm PDT</span> 
       # <div class="article-body">...</div> 
       # </div>
-      $this->seek(1, '<div class="article">');
       $o['story_id'] = 0;
-      if ($this->peek(1, '<h1>') === false) {
-         $o['story_name'] = 'Latest Chatty';
-         $o['story_author'] = 'Shacknews';
-         $o['story_date'] = '';
-         $o['story_text'] = '';
-      } else {
-         $o['story_name'] = $this->clip(
-            array('<h1>', '>'), 
-            '</h1>');
-         $o['story_author'] = $this->clip(
-            array('<span class="author">', '>By ', ' '),
-            ',');
-         $o['story_date'] = $this->clip(
-            array(', ', ' '),
-            '</span>');
-         $o['story_text'] = trim($this->clip(
-            array('<div class="article-body">', '>'),
-            "\t</div>"));
-      }
+      $o['story_name'] = 'Latest Chatty';
+      $o['story_author'] = 'Shacknews';
+      $o['story_date'] = '';
+      $o['story_text'] = '';
       
       #
       # Page navigation (current page)
